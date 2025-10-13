@@ -1,0 +1,22 @@
+'use server';
+import { config } from 'dotenv';
+config();
+
+import '@/ai/flows/create-custom-ai-agents.ts';
+import '@/ai/flows/code-generation-ai-mode.ts';
+import '@/ai/flows/generate-video-from-text.ts';
+import '@/ai/flows/academic-research-ai-mode.ts';
+import '@/ai/flows/orchestrator-flow.ts';
+import '@/ai/flows/web-search-flow.ts';
+import '@/ai/flows/deep-dive-flow.ts';
+import '@/ai/flows/vision-flow.ts';
+import '@/ai/flows/web-agent-flow.ts';
+import '@/ai/flows/create-custom-ai-agents.ts';
+import '@/ai/flows/continuum-flow.ts';
+import '@/ai/flows/aether-flow.ts';
+import '@/ai/flows/synthesis-flow.ts';
+import '@/ai/flows/crucible-flow.ts';
+import '@/ai/flows/live-web-agent-flow.ts';
+import '@/ai/flows/tts-flow.ts';
+import '@/ai/flows/cosmos-flow.ts';
+import '@/ai/flows/catalyst-flow.ts';

@@ -1,0 +1,34 @@
+{
+  "placeholderImages": [
+    {
+      "id": "scholar-avatar",
+      "description": "Avatar for the Scholar agent",
+      "imageUrl": "https://images.unsplash.com/photo-1600353287304-4696b8c39da7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx3aXNlJTIwb3dsfGVufDB8fHx8MTc1OTczNTEwMnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "wise owl"
+    },
+    {
+      "id": "coder-avatar",
+      "description": "Avatar for the Coder agent",
+      "imageUrl": "https://images.unsplash.com/photo-1546980129-6d518dbb51b1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGNvZGV8ZW58MHx8fHwxNzU5NjkwOTE0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract code"
+    },
+    {
+      "id": "analyst-avatar",
+      "description": "Avatar for the Analyst agent",
+      "imageUrl": "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxkYXRhJTIwY2hhcnR8ZW58MHx8fHwxNzU5NzE4OTY1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "data chart"
+    },
+    {
+      "id": "discover-stocks-1",
+      "description": "Stock chart image for discover page",
+      "imageUrl": "https://images.unsplash.com/photo-1691643158804-d3f02eb456a3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxzdG9jayUyMGNoYXJ0fGVufDB8fHx8MTc1OTY2NzQ1NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "stock chart"
+    },
+    {
+      "id": "discover-news-1",
+      "description": "News image for discover page",
+      "imageUrl": "https://images.unsplash.com/photo-1504711434969-e33886168f5c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxuZXdzcGFwZXJ8ZW58MHx8fHwxNzU5NzYzMTc5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "newspaper"
+    }
+  ]
+}
