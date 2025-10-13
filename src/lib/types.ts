@@ -217,7 +217,7 @@ export const CosmosOutputSchema = z.object({
     factions: z.array(z.object({
         name: z.string().describe("Name of the faction."),
         description: z.string().describe("A description of the faction's goals, methods, and power."),
-        emblemUrl: z.string().url().describe("URL for a generated emblem for the faction."),
+        emblemUrl: z.string().url().describe("URL for a a generated emblem for the faction."),
     })).describe("An array of major factions or powers in the world."),
     characters: z.array(z.object({
         name: z.string().describe("Name of the character."),
@@ -305,4 +305,5 @@ export interface Extension {
   description: string;
   icon: LucideIcon;
   enabled: boolean;
+  connected: boolean;
 }
