@@ -297,3 +297,12 @@ export interface ChatMessage {
   // Fields for Live Web Agent (Canvas) output
   liveWebAgentOutput?: LiveWebAgentOutput;
 }
+
+export interface Extension {
+  id: string;
+  name: string;
+  version: string;
+  description: string;
+  icon: LucideIcon;
+  enabled: boolean;
+}

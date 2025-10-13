@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Paperclip, Send, Loader2, Bot, BrainCircuit, Code, FlaskConical, Microscope, PlusCircle, Briefcase, Globe, Feather, Dices, Palette, Soup, TrendingUp, GitCompareArrows, Scale, Cpu, Workflow } from 'lucide-react';
+import { Paperclip, Send, Loader2, Bot, BrainCircuit, Code, FlaskConical, Microscope, PlusCircle, Briefcase, Globe, Feather, Dices, Palette, Soup, TrendingUp, GitCompareArrows, Scale, Cpu, Workflow, Mic, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { Separator } from '../ui/separator';
 import { useSound } from '@/hooks/use-sound';
 import { Logo } from '../logo';
+import { useSpeechToText } from '@/hooks/use-speech-to-text';
 
 const AI_MODE_DETAILS: Record<AiMode, { icon: React.ElementType, description: string, isPersona?: boolean }> = {
   'AI Knowledge': { icon: BrainCircuit, description: 'Quick, web-powered answers.' },
@@ -57,6 +58,12 @@ export function ChatInterface() {
   const playSendSound = useSound('/sounds/send.mp3');
   const playReceiveSound = useSound('/sounds/receive.mp3');
   const playErrorSound = useSound('/sounds/error.mp3');
+
+  const { isListening, startListening, stopListening } = useSpeechToText({
+    onTranscript: (transcript) => {
+      setInput((prevInput) => prevInput + transcript);
+    },
+  });
 
 
   useEffect(() => {
@@ -270,13 +277,29 @@ export function ChatInterface() {
             />
              <Button
                 type="button"
+                variant={isListening ? "destructive" : "ghost"}
+                size="icon"
+                className="shrink-0 h-8 w-8"
+                onClick={() => {
+                  if (isListening) {
+                    stopListening();
+                  } else {
+                    startListening();
+                  }
+                }}
+                disabled={isLoading}
+              >
+                <Mic className="h-4 w-4" />
+              </Button>
+             <Button
+                type="button"
                 variant="ghost"
                 size="icon"
                 className="shrink-0 h-8 w-8"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isLoading}
               >
-                <Paperclip className="h-4 w-4" />
+                <Image className="h-4 w-4" />
               </Button>
               <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,.pdf" />
 

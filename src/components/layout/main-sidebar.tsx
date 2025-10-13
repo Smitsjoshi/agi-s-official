@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Compass, MessageSquare, Users, Clapperboard, Palette, Cpu, Landmark, Wind, BookCheck, ShieldHalf, Briefcase, Sparkles, User, LogOut, Workflow, Code, Star, BookOpen, GitMerge } from 'lucide-react';
+import { Compass, MessageSquare, Users, Clapperboard, Palette, Cpu, Landmark, Wind, BookCheck, ShieldHalf, Briefcase, Sparkles, User, LogOut, Workflow, Code, Star, BookOpen, GitMerge, Puzzle } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -39,6 +39,7 @@ const coreNavItems: NavItem[] = [
   { href: '/codex', icon: Code, label: 'CodeX', description: 'Your AI pair programmer for generating frontend components.' },
   { href: '/workflows', icon: GitMerge, label: 'Workflows', description: 'Automate tasks by creating powerful, connected flows.' },
   { href: '/agents', icon: Users, label: 'Agents', description: 'Interact with specialized AI agents or create your own.' },
+  { href: '/extensions', icon: Puzzle, label: 'Extensions', description: 'Extend the functionality of AGI-S with custom plugins.' },
 ];
 
 const businessNavItems: NavItem[] = [

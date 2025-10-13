@@ -20,6 +20,23 @@ AGI-S is built to be the one-stop solution for all your AI needs. Our mission is
 - **Discover Dashboard**: View trending stocks and news with AI-powered actions.
 - **User Authentication**: Secure user sign-in.
 
+## Upcoming Features
+
+1.  **Unified Multi-Modal Input**: Support for text, voice, image, and file uploads as input. Allow users to switch modalities seamlessly during a session.
+2.  **Plugin/Extension Ecosystem**: Enable third-party plugins or "skills" to extend AI capabilities (e.g., code execution, calendar integration, email, web browsing). A plugin marketplace or manager for users to discover and enable new capabilities.
+3.  **Personalization & Memory**: Persistent user profiles with preferences and AI memory. Let the AI recall past conversations, tasks, and user data (with privacy controls).
+4.  **Workflow Automation**: Visual workflow builder (drag-and-drop) to automate repetitive tasks (e.g., data extraction, summarization, scheduling). Integration with popular tools (Google Suite, Slack, Trello, Notion, etc.).
+5.  **Real-Time Collaboration**: Shared conversations or collaborative documents where multiple users interact with the AI together. Commenting, annotation, and revision history.
+6.  **Contextual Awareness & Smart Suggestions**: The AI proactively suggests next steps, insights, or automations based on context. Context-aware actions (e.g., if a meeting is discussed, offer to schedule it).
+7.  **Advanced Search & Retrieval**: Semantic search across all past interactions, files, and connected apps. Smart filtering and tagging of content.
+8.  **Custom AI Agents**: Users can configure specialized AI agents for different tasks (coding, writing, research, etc.)—and switch between them. Allow creation of custom agent personalities or behaviors.
+9.  **API & Developer Access**: Public API for developers to integrate their own tools/services. Webhooks for event-driven workflows.
+10. **Security, Privacy, & Transparency**: End-to-end encryption for sensitive data. Clear data usage policies, opt-in memory features, and transparency logs.
+11. **Accessible UI/UX**: Responsive design for desktop, mobile, and tablet. Accessibility features: screen reader support, high-contrast mode, keyboard navigation.
+12. **Knowledge Integration**: Connect and search personal or organizational knowledge bases (wikis, docs, etc.). Web search and citation features for up-to-date information.
+13. **Analytics & Insights**: Dashboards showing usage statistics, productivity gains, and task summaries.
+14. **Multi-language Support**: Interface and AI capabilities in multiple languages for global reach.
+
 ## Getting Started
 
 To get started, run the development server:
