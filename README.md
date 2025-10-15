@@ -45,7 +45,11 @@ AGI-S is built to be the one-stop solution for all your AI needs. Our mission is
 12. **Real-Time Collaboration**: Shared conversations or collaborative documents where multiple users interact with the AI together. Commenting, annotation, and revision history.
 13. **Contextual Awareness & Smart Suggestions**: The AI proactively suggests next steps, insights, or automations based on context. Context-aware actions (e.g., if a meeting is discussed, offer to schedule it).
 14. **Custom AI Agents**: Users can configure specialized AI agents for different tasks (coding, writing, research, etc.)—and switch between them. Allow creation of custom agent personalities or behaviors.
-15. **Autonomous, Multi-Agent Swarm Intelligence**: Multiple specialized AI agents (researcher, coder, designer, strategist, etc.) collaborate autonomously, brainstorm, argue, and refine solutions, all visible to the user in real time. Users can spawn, merge, or direct agents with natural language. Visual "agent hive mind" interface—see AI thought processes, branches, and debates.
+
+### S1.5: Advanced Intelligence
+
+15. **Autonomous, Multi-Agent  Intelligence**: Multiple specialized AI agents (researcher, coder, designer, strategist, etc.) collaborate autonomously, brainstorm, argue, and refine solutions, all visible to the user in real time. Users can spawn, merge, or direct agents with natural language. Visual "agent hive mind" interface—see AI thought processes, branches, and debates.
+16. **Universal Action Layer (U.A.L.)**: The platform can act on behalf of the user across the web and local devices—filling forms, booking tickets, making purchases, controlling smart home, writing code and deploying it, etc. Secure, user-controlled permissions; AI can “do” almost anything, anywhere, not just “say” or “suggest.”
 
 ## Getting Started
 
