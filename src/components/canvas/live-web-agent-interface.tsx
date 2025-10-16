@@ -1,67 +1,108 @@
-'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Cpu, Send, Loader2, Search, Globe, Star, Github, BookOpen as BookOpenIcon, Settings, ArrowRight, ShoppingBag, BookOpen, BarChart3, Library, Sparkles } from 'lucide-react';
+"use client";
+
+import React, { useState, useEffect, FormEvent, useRef } from 'react';
+import { Globe, Send, Loader2, Search, ArrowRight, ShoppingBag, Library, BarChart3, BookOpen, Settings, Cpu, FileCode, CheckCircle, Shield, GitMerge, Mic, Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { askAi } from '@/app/actions';
 import type { LiveWebAgentOutput, SearchResult } from '@/lib/types';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { BrowserFrame } from './browser-frame';
 
-// CORRECTED SearchResultCard to be a proper clickable link
+// --- TYPES AND INTERFACES ---
+type LogEntry = {
+    source: 'U.A.L' | 'ANALYZER' | 'PLANNER' | 'EXECUTOR' | 'SYNTHESIZER';
+    message: string;
+    icon: React.ElementType;
+    color: string;
+};
+
+// --- UI COMPONENTS ---
+
 const SearchResultCard = ({ result }: { result: SearchResult }) => {
-    // Safely create a URL object to extract the hostname
     let hostname = 'source';
     try {
         hostname = new URL(result.url).hostname;
-    } catch (e) {
-        console.error('Invalid URL:', result.url);
-    }
+    } catch (e) { /* Invalid URL */ }
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-4"
-        >
-            <a 
-                href={result.url} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="group block bg-muted/30 border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-300"
-            >
-                <div className="flex items-center text-sm text-muted-foreground">
-                    <Globe className="w-4 h-4 mr-2" />
-                    <span>{hostname}</span>
-                </div>
-                <h3 className="text-blue-500 group-hover:underline text-xl font-medium mt-1">{result.title}</h3>
-                {result.snippet && <p className="text-sm text-neutral-400 mt-1">{result.snippet}</p>}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} >
+            <a href={result.url} target="_blank" rel="noopener noreferrer" className="group block bg-zinc-800/50 border border-zinc-700/80 rounded-lg p-4 shadow-sm hover:shadow-blue-500/10 hover:border-blue-500/50 transition-all duration-300">
+                <div className="flex items-center text-sm text-zinc-400"><Globe className="w-4 h-4 mr-2" /><span>{hostname}</span></div>
+                <h3 className="text-blue-400 group-hover:underline text-lg font-medium mt-1">{result.title}</h3>
+                {result.snippet && <p className="text-sm text-zinc-400 mt-1 leading-relaxed">{result.snippet}</p>}
             </a>
         </motion.div>
     );
 };
 
+const AgentIdleView = () => (
+    <div className="flex flex-col items-center justify-center h-full text-center p-8">
+        <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="relative w-48 h-48 flex items-center justify-center"
+        >
+            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-900/50 to-purple-900/50 blur-2xl"></div>
+            <motion.div
+                animate={{ scale: [1, 1.05, 1], transition: { duration: 3, repeat: Infinity, ease: "easeInOut" } }}
+                className="absolute inset-0 rounded-full border-2 border-blue-500/30"
+            ></motion.div>
+            <motion.div
+                animate={{ scale: [1, 0.95, 1], transition: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1.5 } }}
+                className="absolute inset-0 rounded-full border-2 border-purple-500/30"
+            ></motion.div>
+            <Cpu size={64} className="text-zinc-400 z-10" />
+        </motion.div>
+        <h2 className="text-2xl font-bold text-zinc-200 mt-8">Canvas Agent</h2>
+        <p className="text-zinc-400">The Universal Action Layer is awaiting your command.</p>
+    </div>
+);
 
-// Skeleton loader for when the agent is working
-const ProposalSkeleton = () => (
-    <div className="space-y-4">
-        <div className="prose prose-sm dark:prose-invert max-w-none">
-            <div className="h-6 bg-muted/50 rounded w-1/4 animate-pulse mb-4"></div>
-            <div className="h-4 bg-muted/50 rounded w-full animate-pulse"></div>
-            <div className="h-4 bg-muted/50 rounded w-5/6 animate-pulse mt-2"></div>
+const AgentLoadingView = ({ goal, logs }: { goal: string, logs: LogEntry[] }) => (
+    <div className="p-4 sm:p-8 max-w-4xl mx-auto h-full flex flex-col">
+        <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-zinc-200">Executing Task...</h2>
+            <p className="text-zinc-400">Goal: <span className="text-zinc-100 font-medium">"{goal}"</span></p>
         </div>
-        <div className="border-t pt-6">
-             <div className="h-6 bg-muted/50 rounded w-1/3 animate-pulse mb-4"></div>
-            {[...Array(2)].map((_, i) => (
-                <div key={i} className="bg-muted/20 border rounded-lg p-4 mb-4">
-                    <div className="h-4 bg-muted/50 rounded w-1/4 animate-pulse mb-3"></div>
-                    <div className="h-6 bg-muted/50 rounded w-3/4 animate-pulse mb-3"></div>
-                    <div className="h-4 bg-muted/50 rounded w-full animate-pulse"></div>
+        <div className="flex-grow bg-zinc-950/50 rounded-lg p-4 border border-zinc-800/80 overflow-y-auto font-mono text-sm">
+            {logs.map((log, index) => {
+                const Icon = log.icon;
+                return (
+                    <motion.div 
+                        key={index}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                        className="flex items-start gap-3 mb-2"
+                    >
+                        <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${log.color}`} />
+                        <span className={`font-semibold ${log.color}`}>[{log.source}]</span>
+                        <span className="text-zinc-300 flex-grow">{log.message}</span>
+                    </motion.div>
+                )
+            })}
+        </div>
+    </div>
+);
+
+const AgentOutputView = ({ output }: { output: LiveWebAgentOutput }) => (
+    <div className="p-4 sm:p-8 space-y-8 max-w-5xl mx-auto">
+        <div>
+            <h2 className="text-3xl font-bold text-zinc-100 mb-3 flex items-center gap-3"><CheckCircle className="text-green-500"/> Task Completed</h2>
+            <p className="text-zinc-300 leading-relaxed">{output.summary}</p>
+        </div>
+        {output.results && output.results.length > 0 && (
+            <div className="border-t border-zinc-700/50 pt-6">
+                <h3 className="text-xl font-semibold text-zinc-100 mb-4">Sources & Actions</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {output.results.map((result, index) => <SearchResultCard key={result.url || index} result={result} />)}
                 </div>
-            ))}
-        </div>
+            </div>
+        )}
     </div>
 );
 
@@ -70,147 +111,101 @@ export function LiveWebAgentInterface() {
   const [isLoading, setIsLoading] = useState(false);
   const [agentOutput, setAgentOutput] = useState<LiveWebAgentOutput | null>(null);
   const [currentGoal, setCurrentGoal] = useState('');
-  const [isClient, setIsClient] = useState(false);
+  const [agentLogs, setAgentLogs] = useState<LogEntry[]>([]);
   const { toast } = useToast();
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  const runLogSimulation = (goal: string) => {
+    const logs: Omit<LogEntry, 'icon' | 'color'>[] = [
+        { source: 'U.A.L', message: `Received new directive: "${goal}"`},
+        { source: 'ANALYZER', message: 'Parsing goal and identifying key objectives.' },
+        { source: 'PLANNER', message: 'Formulating a multi-step execution plan.' },
+        { source: 'EXECUTOR', message: 'Initiating web search for relevant information.' },
+        { source: 'EXECUTOR', message: 'Found 3 promising sources. Validating content...' },
+        { source: 'EXECUTOR', message: 'Executing code generation module for UI components.' },
+        { source: 'SYNTHESIZER', message: 'Compiling findings and generating final summary.' },
+        { source: 'U.A.L', message: 'Task execution complete. Preparing output.' },
+    ];
 
-  const presets = [
-    { name: 'Shopping', icon: ShoppingBag, example: 'Buy me green Nike shoes from Amazon, size 9, price < ₹6,000.' },
-    { name: 'Research', icon: Library, example: 'Find the latest research papers on swarm intelligence.' },
-    { name: 'Compare', icon: BarChart3, example: 'Compare the new Macbook Pro M3 with the Dell XPS 15.' },
-    { name: 'Book', icon: BookOpen, example: 'Book a flight from New York to London for next week.' },
-  ];
+    const logMap: Record<LogEntry['source'], { icon: React.ElementType, color: string }> = {
+        'U.A.L': { icon: Cpu, color: 'text-yellow-400' },
+        'ANALYZER': { icon: Search, color: 'text-blue-400' },
+        'PLANNER': { icon: GitMerge, color: 'text-purple-400' },
+        'EXECUTOR': { icon: Shield, color: 'text-green-400' },
+        'SYNTHESIZER': { icon: CheckCircle, color: 'text-teal-400' },
+    };
 
-  const handleSubmit = async (e: React.FormEvent, presetQuery?: string) => {
-    e.preventDefault();
-    const finalQuery = presetQuery || query;
-    if (!finalQuery.trim()) return;
+    logs.forEach((log, index) => {
+        setTimeout(() => {
+            setAgentLogs(prev => [...prev, { ...log, ...logMap[log.source] }]);
+        }, index * 1200); 
+    });
+  };
 
-    setCurrentGoal(finalQuery);
+  const handleSubmit = async (goal: string) => {
+    if (!goal.trim()) return;
+
+    setCurrentGoal(goal);
     setIsLoading(true);
     setAgentOutput(null);
+    setAgentLogs([]);
     setQuery('');
 
-    try {
-      const result: LiveWebAgentOutput = await askAi(finalQuery, 'Canvas', []);
-      setAgentOutput(result);
+    runLogSimulation(goal);
 
+    try {
+      const result: LiveWebAgentOutput = await askAi(goal, 'Canvas', []);
+      setTimeout(() => {
+          setAgentOutput(result);
+          setIsLoading(false);
+      }, 8 * 1200 + 500);
     } catch (error) {
       console.error(error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'The AI agent failed its task. This can happen due to website restrictions or complex navigation. Please try a simpler goal.',
-      });
-       // Reset to initial state on error
-      setCurrentGoal('');
-    } finally {
+      toast({ variant: 'destructive', title: 'Error', description: 'The AI agent failed. Please try a simpler goal.' });
       setIsLoading(false);
+      setCurrentGoal('');
     }
   };
-  
-  const handleNewConversation = () => {
-      setAgentOutput(null);
-      setCurrentGoal('');
-      setQuery('');
+
+  const handleFormSubmit = (e: FormEvent) => {
+      e.preventDefault();
+      handleSubmit(query);
+  };
+
+  const handleFutureFeatureClick = () => {
+      toast({
+          title: 'Coming Soon!',
+          description: 'This multi-modal input feature is currently in development.',
+      })
   }
 
-  if (!isClient) {
-    return <div className="h-full w-full flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  let browserUrl = "agi-s://canvas/idle";
+  if (isLoading) {
+      browserUrl = `agi-s://canvas/executing?q=${encodeURIComponent(currentGoal)}`;
+  } else if (agentOutput) {
+      browserUrl = `agi-s://canvas/results?goal=${encodeURIComponent(currentGoal)}`;
   }
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] flex-col items-center p-4">
-        <div className="w-full max-w-5xl mx-auto flex-1 flex flex-col">
-            {/* Browser Header */}
-            <div className="bg-muted border border-b-0 border-border rounded-t-xl shadow-2xl flex-shrink-0">
-                <div className="h-11 px-4 flex items-center gap-2 border-b border-border">
-                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <div className="flex-1 ml-4 bg-background h-7 rounded-md flex items-center px-3">
-                        <Search className="w-4 h-4 text-muted-foreground" />
-                        <p className="text-sm text-foreground ml-2 truncate">
-                            {isLoading ? `Agent is working on: "${currentGoal}"` : (agentOutput?.summary || currentGoal || 'Ready for new goal...')}
-                        </p>
+      <div className="h-[calc(100vh-8rem)] w-full p-4">
+        <BrowserFrame url={browserUrl}>
+          <div className="h-full w-full flex flex-col">
+            <div className="flex-grow overflow-y-auto"><AnimatePresence mode="wait">
+                {isLoading ? <motion.div key="loading"><AgentLoadingView goal={currentGoal} logs={agentLogs} /></motion.div>
+                 : agentOutput ? <motion.div key="output"><AgentOutputView output={agentOutput} /></motion.div>
+                 : <motion.div key="input"><AgentIdleView /></motion.div>}
+            </AnimatePresence></div>
+            <div className="flex-shrink-0 p-4 z-10"><motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="w-full max-w-4xl mx-auto">
+                <form onSubmit={handleFormSubmit}><div className="relative">
+                    <div className="absolute left-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                        <Button type="button" variant="ghost" size="icon" className="text-zinc-400 hover:text-white hover:bg-zinc-700/50 w-8 h-8 rounded-lg" onClick={handleFutureFeatureClick}><Mic /></Button>
+                        <Button type="button" variant="ghost" size="icon" className="text-zinc-400 hover:text-white hover:bg-zinc-700/50 w-8 h-8 rounded-lg" onClick={handleFutureFeatureClick}><Paperclip /></Button>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleNewConversation} title="Start New Goal">
-                        <Cpu className="h-4 w-4" />
-                    </Button>
-                </div>
-                 <div className="h-10 px-2 flex items-center gap-1 border-b border-border">
-                    <Button variant="ghost" size="sm" className="h-8"><Star className="mr-2 h-4 w-4" /> Bookmarks</Button>
-                    <Button variant="ghost" size="sm" className="h-8"><Github className="mr-2 h-4 w-4" /> GitHub</Button>
-                    <Button variant="ghost" size="sm" className="h-8"><BookOpenIcon className="mr-2 h-4 w-4" /> Wikipedia</Button>
-                </div>
-            </div>
-
-            {/* Browser Content */}
-            <div className="bg-background border border-t-0 border-border rounded-b-xl p-4 sm:p-8 flex-1 overflow-y-auto">
-                 {isLoading ? (
-                    <ProposalSkeleton />
-                ) : agentOutput ? (
-                    <div className="space-y-6">
-                        <div>
-                            <h2 className="font-headline text-2xl font-bold text-foreground mb-4">Agent's Summary</h2>
-                            <p className="prose prose-sm dark:prose-invert max-w-none text-foreground">{agentOutput.summary}</p>
-                        </div>
-                        <div className="border-t pt-6">
-                            <h3 className="font-headline text-xl font-semibold text-foreground mb-4">Action Proposals</h3>
-                            {agentOutput.results?.length > 0 ? (
-                                agentOutput.results.map((result, index) => (
-                                    <SearchResultCard key={result.url || index} result={result} />
-                                ))
-                            ) : (
-                                <p className='text-muted-foreground'>The agent did not find any specific web pages to recommend.</p>
-                            )}
-                        </div>
-                    </div>
-                ) : (
-                    // A. Live Web Action Input Card (Initial View)
-                    <div className="flex flex-col items-center justify-center h-full">
-                         <div className="bg-background border rounded-xl shadow-lg p-6 w-full max-w-3xl">
-                            <form onSubmit={handleSubmit}>
-                                <Textarea
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
-                                    placeholder="Buy me green Nike shoes from Amazon, size 9, price < ₹6,000."
-                                    className="w-full h-32 text-lg p-4 border-2 focus-visible:ring-primary/50 resize-none bg-muted/20"
-                                    disabled={isLoading}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(e); }}}
-                                />
-                                <div className="mt-4 flex items-center justify-between">
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                        {presets.map(preset => (
-                                            <Button key={preset.name} type="button" variant="outline" size="sm" className="flex items-center gap-2" onClick={(e) => handleSubmit(e, preset.example)} disabled={isLoading}>
-                                                <preset.icon className="w-4 h-4" />
-                                                {preset.name}
-                                            </Button>
-                                        ))}
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Button type="button" variant="ghost" size="icon" disabled={isLoading}>
-                                            <Settings className="w-5 h-5" />
-                                        </Button>
-                                        <Button 
-                                            type="submit"
-                                            className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold text-base px-6 py-3 rounded-lg shadow-md disabled:bg-muted disabled:text-muted-foreground"
-                                            disabled={!query.trim() || isLoading}
-                                        >
-                                            Execute Task
-                                            <ArrowRight className="w-5 h-5 ml-2" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
+                    <Textarea value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Command the agent..." className="w-full text-base pl-24 pr-12 py-3 border-2 border-zinc-700/80 bg-zinc-900/80 rounded-xl focus-visible:ring-blue-500/60 focus-visible:ring-2 focus:border-blue-500/10 resize-none shadow-lg transition-all duration-300 h-12 overflow-hidden" disabled={isLoading} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleFormSubmit(e); }}}/>
+                    <Button type="submit" size="icon" className="absolute top-1/2 right-2.5 -translate-y-1/2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:bg-zinc-700 disabled:text-zinc-400 w-9 h-9" disabled={!query.trim() || isLoading}>{isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowRight className="w-5 h-5" />}</Button>
+                </div></form>
+            </motion.div></div>
+          </div>
+        </BrowserFrame>
     </div>
   );
 }

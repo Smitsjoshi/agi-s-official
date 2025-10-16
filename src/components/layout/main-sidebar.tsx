@@ -36,7 +36,6 @@ type NavItem = {
 const coreNavItems: NavItem[] = [
   { href: '/ask', icon: MessageSquare, label: 'Ask', description: 'The main AI chat interface for multi-modal interactions.' },
   { href: '/canvas', icon: Cpu, label: 'Canvas', description: 'Your goal-oriented autonomous web agent.' },
-  { href: '/nexus', icon: GitMerge, label: 'Nexus', description: 'Autonomous, Multi-Agent Swarm Intelligence.' },
   { href: '/codex', icon: Code, label: 'CodeX', description: 'Your AI pair programmer for generating frontend components.' },
   { href: '/workflows', icon: GitMerge, label: 'Workflows', description: 'Automate tasks by creating powerful, connected flows.' },
   { href: '/agents', icon: Users, label: 'Agents', description: 'Interact with specialized AI agents or create your own.' },
