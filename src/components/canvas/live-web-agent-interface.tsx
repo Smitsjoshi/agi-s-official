@@ -1,8 +1,8 @@
 
 "use client";
 
-import React, { useState, useEffect, FormEvent, useRef } from 'react';
-import { Globe, Send, Loader2, Search, ArrowRight, ShoppingBag, Library, BarChart3, BookOpen, Settings, Cpu, FileCode, CheckCircle, Shield, GitMerge, Mic, Paperclip } from 'lucide-react';
+import React, { useState, useEffect, FormEvent } from 'react';
+import { Globe, ArrowRight, Cpu, CheckCircle, Shield, GitMerge, Mic, Paperclip, Loader2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
@@ -114,32 +114,49 @@ export function LiveWebAgentInterface() {
   const [agentLogs, setAgentLogs] = useState<LogEntry[]>([]);
   const { toast } = useToast();
 
-  const runLogSimulation = (goal: string) => {
-    const logs: Omit<LogEntry, 'icon' | 'color'>[] = [
-        { source: 'U.A.L', message: `Received new directive: "${goal}"`},
-        { source: 'ANALYZER', message: 'Parsing goal and identifying key objectives.' },
-        { source: 'PLANNER', message: 'Formulating a multi-step execution plan.' },
-        { source: 'EXECUTOR', message: 'Initiating web search for relevant information.' },
-        { source: 'EXECUTOR', message: 'Found 3 promising sources. Validating content...' },
-        { source: 'EXECUTOR', message: 'Executing code generation module for UI components.' },
-        { source: 'SYNTHESIZER', message: 'Compiling findings and generating final summary.' },
-        { source: 'U.A.L', message: 'Task execution complete. Preparing output.' },
-    ];
+  useEffect(() => {
+    if (isLoading) {
+      const executeAgent = async () => {
+        const logMap: Record<LogEntry['source'], { icon: React.ElementType, color: string }> = {
+            'U.A.L': { icon: Cpu, color: 'text-yellow-400' },
+            'ANALYZER': { icon: Search, color: 'text-blue-400' },
+            'PLANNER': { icon: GitMerge, color: 'text-purple-400' },
+            'EXECUTOR': { icon: Shield, color: 'text-green-400' },
+            'SYNTHESIZER': { icon: CheckCircle, color: 'text-teal-400' },
+        };
 
-    const logMap: Record<LogEntry['source'], { icon: React.ElementType, color: string }> = {
-        'U.A.L': { icon: Cpu, color: 'text-yellow-400' },
-        'ANALYZER': { icon: Search, color: 'text-blue-400' },
-        'PLANNER': { icon: GitMerge, color: 'text-purple-400' },
-        'EXECUTOR': { icon: Shield, color: 'text-green-400' },
-        'SYNTHESIZER': { icon: CheckCircle, color: 'text-teal-400' },
-    };
+        const initialLogs: Omit<LogEntry, 'icon' | 'color'>[] = [
+            { source: 'U.A.L', message: `Received new directive: "${currentGoal}"`},
+            { source: 'ANALYZER', message: 'Parsing goal and identifying key objectives.' },
+            { source: 'PLANNER', message: 'Formulating a multi-step execution plan.' },
+        ];
 
-    logs.forEach((log, index) => {
-        setTimeout(() => {
-            setAgentLogs(prev => [...prev, { ...log, ...logMap[log.source] }]);
-        }, index * 1200); 
-    });
-  };
+        initialLogs.forEach((log, index) => {
+            setTimeout(() => {
+                setAgentLogs(prev => [...prev, { ...log, ...logMap[log.source] }]);
+            }, index * 100);
+        });
+
+        try {
+          // @ts-ignore
+          const result: LiveWebAgentOutput = await askAi(currentGoal, 'Canvas', []);
+          setAgentLogs(prev => [...prev, { source: 'EXECUTOR', message: 'Executing plan and interacting with web tools...', ...logMap['EXECUTOR'] }]);
+          setTimeout(() => {
+            setAgentLogs(prev => [...prev, { source: 'SYNTHESIZER', message: 'Compiling findings and generating final summary.', ...logMap['SYNTHESIZER'] }]);
+            setAgentOutput(result);
+            setIsLoading(false);
+          }, 1500);
+        } catch (error) {
+          console.error(error);
+          toast({ variant: 'destructive', title: 'Error', description: 'The AI agent failed. Please try a simpler goal.' });
+          setIsLoading(false);
+          setCurrentGoal('');
+        }
+      };
+      executeAgent();
+    }
+  }, [isLoading, currentGoal, toast]);
+
 
   const handleSubmit = async (goal: string) => {
     if (!goal.trim()) return;
@@ -149,21 +166,6 @@ export function LiveWebAgentInterface() {
     setAgentOutput(null);
     setAgentLogs([]);
     setQuery('');
-
-    runLogSimulation(goal);
-
-    try {
-      const result: LiveWebAgentOutput = await askAi(goal, 'Canvas', []);
-      setTimeout(() => {
-          setAgentOutput(result);
-          setIsLoading(false);
-      }, 8 * 1200 + 500);
-    } catch (error) {
-      console.error(error);
-      toast({ variant: 'destructive', title: 'Error', description: 'The AI agent failed. Please try a simpler goal.' });
-      setIsLoading(false);
-      setCurrentGoal('');
-    }
   };
 
   const handleFormSubmit = (e: FormEvent) => {
