@@ -1,6 +1,6 @@
 # AGI-S
 
-AGI-S is a comprehensive, AI-powered web application built with Next.js, React, TypeScript, and Tailwind CSS. It leverages Genkit for its advanced AI capabilities.
+AGI-S is a comprehensive, AI-powered PWA
 
 ## Our Philosophy
 
