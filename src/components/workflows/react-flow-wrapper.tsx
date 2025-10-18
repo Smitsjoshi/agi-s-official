@@ -18,9 +18,23 @@ import {
     Mail, Filter, GitMerge, Bot, MessageSquare, Database, LucideIcon, Play, Code, Clock, Webhook, Terminal,
     FileText, Image, PenSquare, Share2, Shuffle, Combine, Milestone, ToggleLeft, Repeat, Variable,
     ArrowRightLeft, FileJson, Link2, MousePointer, Type, Eye, Camera, Download, Slack, AtSign, Send,
-    Table, BookUser, Search, GitBranch, Asterisk, BookCopy, Zap, Cpu, ShieldHalf, Star, BookOpen, BookCheck
-} from 'lucide-react';
+    Table, BookUser, Search, GitBranch, Asterisk, BookCopy, Zap, Cpu, ShieldHalf, Star, BookOpen, BookCheck,
+    // New Icons for the massive update
+    BrainCircuit, GitCommit, Server, Cloud, ShoppingCart, Briefcase, BarChart, Mic, Video, Users,
+    File, Folder, Trash, Upload, DownloadCloud, FileUp, FileDown, Layers, Package, GitPullRequest,
+    Code2, Braces, Settings, ToggleRight, AlertCircle, Bug, TestTube, Rocket, Anchor, Globe,
+    Network, Key, Shield, User, UserPlus, UserMinus, Calendar, MapPin, Phone, Mailbox,
+    MessageCircle, Share, ThumbsUp, ThumbsDown, Award, Trophy, Gift, Sun, Moon, Sunset,
+    Sunrise, Wind, CloudSun, CloudMoon, CloudRain, CloudSnow, CloudLightning, Gauge, Speedometer,
+    Bitcoin, DollarSign, Euro, PoundSterling, CreditCard, Banknote, Wallet, Landmark, Building,
+    Home, Warehouse, Factory, Car, Train, Ship, Plane, Bike, Tractor, Ambulance,
+    Truck, Brush, Paintbrush, Palette, Layout, Grid, Rows, Columns, AppWindow, SquareCode,
+    CircleDot, Triangle, Octagon, Square, Spline, Waypoints, Workflow, Timer, Watch, Laptop,
+    Smartphone, Tablet, HardDrive, Mouse, Keyboard, Speaker, Disc, Save, Printer, Radio,
+    Rss, Wifi, Battery, BatteryCharging, Plug, Component, ToyBrick, Puzzle, Glasses, Sticker, Book, Bookmark, Clipboard, ClipboardList, 
+    ClipboardCheck, Copy, Scissors, Paperclip, Unlink, ExternalLink, Bold, Italic, Underline, Strikethrough, Heading1, Heading2, Heading3
 
+} from 'lucide-react';
 
 import CustomNode, { CustomNodeData } from './custom-node';
 import { Button } from '../ui/button';
@@ -72,6 +86,11 @@ const paletteNodes: Record<string, NodePaletteItem[]> = {
         { icon: Clock, title: "Schedule", description: "Trigger workflow at a specific time.", isTrigger: true },
         { icon: Webhook, title: "Webhook", description: "Start workflow when a webhook is called.", isTrigger: true },
         { icon: Mail, title: "Email Trigger", description: "Start workflow on new email.", isTrigger: true },
+        { icon: GitCommit, title: "New Git Commit", description: "Trigger on new commit to a repository.", isTrigger: true },
+        { icon: Database, title: "New DB Row", description: "Trigger when a new row is added to a table.", isTrigger: true },
+        { icon: ShoppingCart, title: "New Purchase", description: "Trigger on a new e-commerce purchase.", isTrigger: true },
+        { icon: UserPlus, title: "New User", description: "Trigger when a new user signs up.", isTrigger: true },
+        { icon: FileUp, title: "File Uploaded", description: "Trigger when a file is uploaded to storage.", isTrigger: true },
     ],
     "AGI-S Core": [
         { icon: Bot, title: "AI Knowledge", description: "Use the main AI chat function." },
@@ -83,6 +102,53 @@ const paletteNodes: Record<string, NodePaletteItem[]> = {
         { icon: Star, title: "Generate with Cosmos", description: "Create a fictional world." },
         { icon: BookOpen, title: "Generate with Catalyst", description: "Create a personalized learning path." },
     ],
+    "Advanced AI & Machine Learning": [
+        { icon: BrainCircuit, title: "Train Model", description: "Train a custom machine learning model."}, 
+        { icon: Bot, title: "Sentiment Analysis", description: "Analyze the sentiment of a text."}, 
+        { icon: Eye, title: "Image Recognition", description: "Identify objects and text in images."}, 
+        { icon: Mic, title: "Speech-to-Text", description: "Transcribe audio to text."}, 
+        { icon: MessageSquare, title: "Text Summarization", description: "Summarize a long piece of text."}, 
+        { icon: Share2, title: "Topic Modeling", description: "Identify topics in a corpus of text."}, 
+        { icon: Users, title: "Customer Churn Prediction", description: "Predict if a customer will churn."}, 
+        { icon: Filter, title: "Spam Detection", description: "Detect spam in emails or messages."}, 
+        { icon: ArrowRightLeft, title: "Language Translation", description: "Translate text from one language to another."}, 
+    ],
+    "Development & DevOps": [
+        { icon: GitCommit, title: "Git Commit", description: "Commit changes to a Git repository."}, 
+        { icon: GitMerge, title: "Git Merge", description: "Merge a branch into another."}, 
+        { icon: GitPullRequest, title: "Create Pull Request", description: "Create a pull request on GitHub/GitLab."}, 
+        { icon: Server, title: "Deploy to Server", description: "Deploy an application to a server."}, 
+        { icon: Rocket, title: "Run CI/CD Pipeline", description: "Trigger a CI/CD pipeline."}, 
+        { icon: Bug, title: "Create Issue", description: "Create an issue in a bug tracker."}, 
+        { icon: TestTube, title: "Run Tests", description: "Run unit tests or integration tests."}, 
+        { icon: Terminal, title: "Run Shell Command", description: "Execute a shell command on a server."}, 
+    ],
+    "Cloud Services (AWS, GCP, Azure)": [
+        { icon: Cloud, title: "AWS Lambda", description: "Invoke an AWS Lambda function."}, 
+        { icon: Upload, title: "AWS S3 Upload", description: "Upload a file to an AWS S3 bucket."}, 
+        { icon: Cloud, title: "GCP Cloud Function", description: "Invoke a Google Cloud Function."}, 
+        { icon: Upload, title: "GCP Cloud Storage Upload", description: "Upload a file to GCS."}, 
+        { icon: Cloud, title: "Azure Function", description: "Invoke an Azure Function."}, 
+        { icon: Upload, title: "Azure Blob Storage Upload", description: "Upload a file to Azure Blob Storage."}, 
+        { icon: Database, title: "AWS RDS Query", description: "Run a query on an AWS RDS database."}, 
+        { icon: Database, title: "GCP Cloud SQL Query", description: "Run a query on a GCP Cloud SQL database."}, 
+    ],
+    "E-commerce (Shopify, Stripe, etc.)": [
+        { icon: ShoppingCart, title: "Get Shopify Products", description: "Get a list of products from Shopify."}, 
+        { icon: Users, title: "Get Shopify Customers", description: "Get a list of customers from Shopify."}, 
+        { icon: DollarSign, title: "Create Stripe Charge", description: "Create a charge in Stripe."}, 
+        { icon: CreditCard, title: "Get Stripe Customer", description: "Get a customer from Stripe."}, 
+        { icon: Package, title: "Fulfill Shopify Order", description: "Fulfill an order in Shopify."}, 
+        { icon: Milestone, title: "Create Shopify Discount", description: "Create a discount code in Shopify."}, 
+    ],
+    "Marketing & Sales (Salesforce, HubSpot, etc.)": [
+        { icon: UserPlus, title: "Create Salesforce Lead", description: "Create a new lead in Salesforce."}, 
+        { icon: BookUser, title: "Get HubSpot Contact", description: "Get a contact from HubSpot."}, 
+        { icon: Mail, title: "Send Mailchimp Campaign", description: "Send a campaign from Mailchimp."}, 
+        { icon: BarChart, title: "Get Google Analytics Report", description: "Get a report from Google Analytics."}, 
+        { icon: Users, title: "Add Contact to HubSpot List", description: "Add a contact to a list in HubSpot."}, 
+        { icon: Landmark, title: "Update Salesforce Opportunity", description: "Update an opportunity in Salesforce."}, 
+    ],
     "Web Agent": [
         { icon: Link2, title: "Go to URL", description: "Navigate to a specific web page." },
         { icon: MousePointer, title: "Click Element", description: "Click on a link, button, or element." },
@@ -90,6 +156,8 @@ const paletteNodes: Record<string, NodePaletteItem[]> = {
         { icon: Eye, title: "Extract Data", description: "Extract text or data from an element." },
         { icon: Search, title: "Web Search", description: "Perform a web search." },
         { icon: Camera, title: "Take Screenshot", description: "Capture a screenshot of the current page." },
+        { icon: FileJson, title: "Scrape Website", description: "Scrape data from a website."}, 
+        { icon: Code, title: "Execute Javascript", description: "Execute Javascript on the current page."}, 
     ],
     "Logic & Control": [
         { icon: GitBranch, title: "If/Else", description: "Branch workflow based on a condition." },
@@ -100,6 +168,8 @@ const paletteNodes: Record<string, NodePaletteItem[]> = {
         { icon: Clock, title: "Wait", description: "Pause the workflow for a set time." },
         { icon: Terminal, title: "Execute Code", description: "Run a JavaScript or Python snippet." },
         { icon: Zap, title: "End Workflow", description: "Stop the workflow execution." },
+        { icon: AlertCircle, title: "Error Handling", description: "Catch and handle errors in the workflow."}, 
+        { icon: ToggleLeft, title: "Boolean Logic", description: "Perform AND/OR/NOT operations."}, 
     ],
     "Data Handling": [
         { icon: Variable, title: "Set Variable", description: "Create or update a variable." },
@@ -108,6 +178,8 @@ const paletteNodes: Record<string, NodePaletteItem[]> = {
         { icon: FileJson, title: "Parse JSON", description: "Extract data from a JSON object." },
         { icon: Table, title: "Create Table", description: "Construct a table from data." },
         { icon: FileText, title: "Create Text", description: "Compose or format a block of text." },
+        { icon: Code2, title: "Format Code", description: "Format code in a specific language."}, 
+        { icon: Braces, title: "Create JSON", description: "Create a JSON object from scratch."}, 
     ],
     "Integrations": [
         { icon: Slack, title: "Send Slack Message", description: "Post a message to a Slack channel." },
@@ -117,6 +189,8 @@ const paletteNodes: Record<string, NodePaletteItem[]> = {
         { icon: Database, title: "Airtable", description: "Read or write to an Airtable base." },
         { icon: Milestone, title: "Notion", description: "Create or update a Notion page/database." },
         { icon: Download, title: "HTTP Request", description: "Make an API call to any service." },
+        { icon: GitCommit, title: "GitHub", description: "Interact with the GitHub API."}, 
+        { icon: MessageCircle, title: "Twilio", description: "Send SMS messages via Twilio."}, 
     ],
 };
 
