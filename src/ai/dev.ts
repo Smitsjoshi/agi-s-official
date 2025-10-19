@@ -20,3 +20,4 @@ import '@/ai/flows/live-web-agent-flow.ts';
 import '@/ai/flows/tts-flow.ts';
 import '@/ai/flows/cosmos-flow.ts';
 import '@/ai/flows/catalyst-flow.ts';
+import '@/ai/cosmic-node.ts';
