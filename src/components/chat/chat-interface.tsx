@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Paperclip, Send, Loader2, Bot, BrainCircuit, Code, FlaskConical, Microscope, PlusCircle, Briefcase, Globe, Feather, Dices, Palette, Soup, TrendingUp, GitCompareArrows, Scale, Cpu, Workflow, Mic, Image } from 'lucide-react';
+import { Paperclip, Send, Loader2, Bot, BrainCircuit, Code, FlaskConical, Microscope, PlusCircle, Briefcase, Globe, Feather, Dices, Palette, Soup, TrendingUp, GitCompareArrows, Scale, Cpu, Workflow, Mic, Image, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -18,23 +18,23 @@ import { useSound } from '@/hooks/use-sound';
 import { Logo } from '../logo';
 import { useSpeechToText } from '@/hooks/use-speech-to-text';
 
-const AI_MODE_DETAILS: Record<AiMode, { icon: React.ElementType, description: string, isPersona?: boolean }> = {
+const AI_MODE_DETAILS: Record<AiMode, { icon: React.ElementType, description: string, isPersona?: boolean, isPremium?: boolean }> = {
   'AI Knowledge': { icon: BrainCircuit, description: 'Quick, web-powered answers.' },
-  'CodeX': { icon: Code, description: 'An elite 10x developer and pair programmer.' },
+  'CodeX': { icon: Code, description: 'An elite 10x developer and pair programmer.', isPremium: true },
   'Academic Research': { icon: Microscope, description: 'Search academic sources.' },
-  'Deep Dive': { icon: FlaskConical, description: 'In-depth, multi-source analysis.' },
-  'Canvas': { icon: Cpu, description: 'Your goal-oriented autonomous web agent.' },
-  'Blueprint': { icon: Workflow, description: 'Deconstructs goals into actionable plans.' },
+  'Deep Dive': { icon: FlaskConical, description: 'In-depth, multi-source analysis.', isPremium: true },
+  'Canvas': { icon: Cpu, description: 'Your goal-oriented autonomous web agent.', isPremium: true },
+  'Blueprint': { icon: Workflow, description: 'Deconstructs goals into actionable plans.', isPremium: true },
   // Personas
-  'The Strategist': { icon: Briefcase, description: 'A seasoned MBA and startup consultant.', isPersona: true },
-  'The Globetrotter': { icon: Globe, description: 'An elite travel concierge for detailed itineraries.', isPersona: true },
-  'The Storyteller': { icon: Feather, description: 'A creative co-author for writers and marketers.', isPersona: true },
-  'The Game Master': { icon: Dices, description: 'An imaginative Dungeon Master for TTRPGs.', isPersona: true },
-  'The Designer': { icon: Palette, description: 'A senior UI/UX designer for app concepts.', isPersona: true },
-  'The Gourmet': { icon: Soup, description: 'A personal chef and nutritionist for custom meal plans.', isPersona: true },
-  'The Forecaster': { icon: TrendingUp, description: 'A trend analyst and data-driven futurist.', isPersona: true },
-  'Comparison Analyst': { icon: GitCompareArrows, description: 'An unbiased evaluator for side-by-side comparisons.', isPersona: true },
-  'The Ethicist': { icon: Scale, description: 'Analyzes complex moral and ethical dilemmas.', isPersona: true },
+  'The Strategist': { icon: Briefcase, description: 'A seasoned MBA and startup consultant.', isPersona: true, isPremium: true },
+  'The Globetrotter': { icon: Globe, description: 'An elite travel concierge for detailed itineraries.', isPersona: true, isPremium: true },
+  'The Storyteller': { icon: Feather, description: 'A creative co-author for writers and marketers.', isPersona: true, isPremium: true },
+  'The Game Master': { icon: Dices, description: 'An imaginative Dungeon Master for TTRPGs.', isPersona: true, isPremium: true },
+  'The Designer': { icon: Palette, description: 'A senior UI/UX designer for app concepts.', isPersona: true, isPremium: true },
+  'The Gourmet': { icon: Soup, description: 'A personal chef and nutritionist for custom meal plans.', isPersona: true, isPremium: true },
+  'The Forecaster': { icon: TrendingUp, description: 'A trend analyst and data-driven futurist.', isPersona: true, isPremium: true },
+  'Comparison Analyst': { icon: GitCompareArrows, description: 'An unbiased evaluator for side-by-side comparisons.', isPersona: true, isPremium: true },
+  'The Ethicist': { icon: Scale, description: 'Analyzes complex moral and ethical dilemmas.', isPersona: true, isPremium: true },
   'Synthesis': { icon: Code, description: 'Placeholder' }, // Added to satisfy type, not shown in UI
   'Crucible': { icon: Code, description: 'Placeholder' }, // Added to satisfy type, not shown in UI
 };
@@ -116,6 +116,14 @@ export function ChatInterface() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() && !file) return;
+
+    if (AI_MODE_DETAILS[mode].isPremium) {
+      toast({
+        title: 'Premium Feature',
+        description: 'Upgrade to unlock this feature.',
+      });
+      return;
+    }
     
     playSendSound();
 
@@ -145,8 +153,6 @@ export function ChatInterface() {
       const currentMessages = [...newMessages]; // Use the latest state
       const userMessageIndex = currentMessages.findIndex(m => m.id === userMessage.id);
       if (userMessageIndex !== -1) {
-          // If there's an error, we keep the user message, but don't add the assistant one.
-          // This ensures the user message is visible.
           setMessages(currentMessages.slice(0, userMessageIndex + 1));
       }
       toast({
@@ -220,19 +226,32 @@ export function ChatInterface() {
                   </div>
                    <div className="grid gap-2">
                     {MAIN_AI_MODES.map((m) => {
-                      const { icon: Icon, description } = AI_MODE_DETAILS[m];
+                      const { icon: Icon, description, isPremium } = AI_MODE_DETAILS[m];
                       return (
                         <div
                           key={m}
-                          onClick={() => setMode(m)}
+                          onClick={() => {
+                            if (isPremium) {
+                              toast({
+                                title: 'Premium Feature',
+                                description: 'Upgrade to unlock this feature.',
+                              });
+                            } else {
+                              setMode(m);
+                            }
+                          }}
                           className={cn(
                             'flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-colors',
-                             mode === m ? 'bg-secondary' : 'hover:bg-muted/50'
+                             mode === m ? 'bg-secondary' : 'hover:bg-muted/50',
+                             isPremium && 'cursor-not-allowed opacity-50'
                           )}
                         >
                             <Icon className="h-5 w-5 mt-0.5 text-primary" />
                             <div>
-                                <p className="font-medium text-sm">{m}</p>
+                                <div className="flex items-center gap-2">
+                                  <p className="font-medium text-sm">{m}</p>
+                                  {isPremium && <Lock className="h-3 w-3" />}
+                                </div>
                                 <p className="text-xs text-muted-foreground">{description}</p>
                             </div>
                         </div>
@@ -248,19 +267,32 @@ export function ChatInterface() {
                   </div>
                    <div className="grid gap-2">
                     {PERSONAS.map((m) => {
-                      const { icon: Icon, description } = AI_MODE_DETAILS[m];
+                      const { icon: Icon, description, isPremium } = AI_MODE_DETAILS[m];
                       return (
                         <div
                           key={m}
-                          onClick={() => setMode(m)}
+                          onClick={() => {
+                            if (isPremium) {
+                              toast({
+                                title: 'Premium Feature',
+                                description: 'Upgrade to unlock this feature.',
+                              });
+                            } else {
+                              setMode(m);
+                            }
+                          }}
                           className={cn(
                             'flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-colors',
-                             mode === m ? 'bg-secondary' : 'hover:bg-muted/50'
+                             mode === m ? 'bg-secondary' : 'hover:bg-muted/50',
+                             isPremium && 'cursor-not-allowed opacity-50'
                           )}
                         >
                             <Icon className="h-5 w-5 mt-0.5 text-primary" />
                             <div>
-                                <p className="font-medium text-sm">{m}</p>
+                                <div className="flex items-center gap-2">
+                                  <p className="font-medium text-sm">{m}</p>
+                                  {isPremium && <Lock className="h-3 w-3" />}
+                                </div>
                                 <p className="text-xs text-muted-foreground">{description}</p>
                             </div>
                         </div>

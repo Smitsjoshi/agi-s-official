@@ -25,24 +25,20 @@ export function AccessCodeForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: 'mmsjsmit@gmail.com',
-      accessCode: '123456',
+      email: '',
+      accessCode: '',
     },
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (values.email === 'mmsjsmit@gmail.com' && values.accessCode === '123456') {
+    try {
+      const user = await signIn(values.accessCode);
       toast({
         title: 'Authentication Successful',
-        description: 'Welcome back!',
+        description: `Welcome ${user.name}`,
       });
-      
-      // Simulate sign-in and redirect
-      setTimeout(() => {
-        signIn();
-        router.push('/ask');
-      }, 1000);
-    } else {
+      router.push('/ask');
+    } catch (error) {
       toast({
         title: 'Authentication Failed',
         description: 'Invalid credentials. Please contact Smit for support.',
