@@ -6,24 +6,21 @@ import { Button } from './ui/button';
 import { Sparkles, X } from 'lucide-react';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
+import { remoteConfig } from '@/lib/firebase/firebase-config';
+import { fetchAndActivate, getBoolean } from 'firebase/remote-config';
 
 export function UpgradeBanner() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const showBanner = () => setIsVisible(true);
-
-    // Show the banner initially after a short delay
-    const initialTimer = setTimeout(showBanner, 5000);
-
-    // Set an interval to show the banner every 2 minutes
-    const interval = setInterval(showBanner, 120000); // 2 minutes
-
-    // Cleanup timers on component unmount
-    return () => {
-      clearTimeout(initialTimer);
-      clearInterval(interval);
-    };
+    fetchAndActivate(remoteConfig)
+      .then(() => {
+        const isBannerVisible = getBoolean(remoteConfig, 'upgrade_banner_visible');
+        setIsVisible(isBannerVisible);
+      })
+      .catch((err) => {
+        console.error('Error fetching remote config:', err);
+      });
   }, []);
 
   const handleDismiss = () => {

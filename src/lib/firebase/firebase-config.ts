@@ -1,4 +1,5 @@
-import { initializeApp, getApps } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getRemoteConfig } from "firebase/remote-config";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCSKbAL2hZ_rqBa5wzWvXLBbhI3k5ajyAs",
@@ -11,6 +12,17 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-if (!getApps().length) {
-  initializeApp(firebaseConfig);
-}
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+
+// Initialize Remote Config
+const remoteConfig = getRemoteConfig(app);
+
+// Set minimum fetch interval
+remoteConfig.settings.minimumFetchIntervalMillis = 3600000;
+
+// Set default values
+remoteConfig.defaultConfig = {
+  "upgrade_banner_visible": true
+};
+
+export { remoteConfig };
