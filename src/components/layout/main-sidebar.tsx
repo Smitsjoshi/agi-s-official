@@ -24,6 +24,7 @@ import { UserNav } from '@/components/layout/user-nav';
 import { cn } from '@/lib/utils';
 import { useSound } from '@/hooks/use-sound';
 import { Button } from '../ui/button';
+import { useSession } from '@/hooks/use-session';
 
 type NavItem = {
     href: string;
@@ -35,7 +36,6 @@ type NavItem = {
 
 const coreNavItems: NavItem[] = [
   { href: '/ask', icon: MessageSquare, label: 'Ask', description: 'The main AI chat interface for multi-modal interactions.', locked: false },
-  { href: '/ual', icon: GitCommit, label: 'UAL', description: 'The Universal Action Layer.', locked: false },
   { href: '/canvas', icon: Cpu, label: 'Canvas', description: 'Your goal-oriented autonomous web agent.', locked: true },
   { href: '/codex', icon: Code, label: 'CodeX', description: 'Your AI pair programmer for generating frontend components.', locked: true },
   { href: '/workflows', icon: GitMerge, label: 'Workflows', description: 'Automate tasks by creating powerful, connected flows.', locked: true },
@@ -53,7 +53,7 @@ const exploreNavItems: NavItem[] = [
     { href: '/notifications', icon: Bell, label: 'Notifications', description: 'Manage your notification settings.', locked: true },
     { href: '/api', icon: Key, label: 'API', description: 'Integrate your own tools and services with AGI-S.', locked: true },
     { href: '/support', icon: LifeBuoy, label: 'Support', description: 'Get help and submit feedback.', locked: false },
-    { href: '/faq', icon: HelpCircle, label: 'FAQ', description: 'Find answers to common questions.', locked: true },
+    { href: '/faq', icon: HelpCircle, label: 'FAQ', description: 'Find answers to common questions.', locked: false },
 ];
 
 const createNavItems: NavItem[] = [
@@ -78,13 +78,14 @@ const learnNavItems: NavItem[] = [
 ];
 
 
-const NavGroup = ({ title, items, state, pathname, playNavSound }: { title: string, items: NavItem[], state: 'expanded' | 'collapsed', pathname: string, playNavSound: () => void }) => {
+const NavGroup = ({ title, items, state, pathname, playNavSound, user }: { title: string, items: NavItem[], state: 'expanded' | 'collapsed', pathname: string, playNavSound: () => void, user: any }) => {
   const renderNavItems = (items: NavItem[]) => {
     return items.map((item) => {
       const Icon = item.icon;
       const isActive = pathname.startsWith(item.href);
+      const isLocked = user?.pages?.includes('all') ? false : !user?.pages?.includes(item.href);
 
-      if (item.locked) {
+      if (isLocked) {
         return (
           <SidebarMenuItem key={item.href}>
             <div className="relative">
@@ -94,7 +95,7 @@ const NavGroup = ({ title, items, state, pathname, playNavSound }: { title: stri
                 tooltip={(
                   <div>
                     <p className="font-bold">{item.label}</p>
-                    <p className="text-sm text-muted-foreground">This feature is coming soon.</p>
+                    <p className="text-sm text-muted-foreground">You do not have access to this page.</p>
                   </div>
                 )}
               >
@@ -159,8 +160,9 @@ export function MainSidebar() {
   const pathname = usePathname();
   const { state } = useSidebar();
   const playNavSound = useSound('/sounds/navigate.mp3');
+  const { user } = useSession();
 
-  const navProps = { state, pathname, playNavSound };
+  const navProps = { state, pathname, playNavSound, user };
 
   return (
     <Sidebar variant="inset">

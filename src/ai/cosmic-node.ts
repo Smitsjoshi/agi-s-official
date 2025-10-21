@@ -18,7 +18,7 @@ export async function cosmicFlow(
   chatHistory: ChatMessage[],
   file?: { type: 'image' | 'pdf' | 'csv' | 'json'; data: string },
   options?: any,
-): Promise<string> {
+): Promise<any> {
   const modelName = file ? 'gemini-pro-vision' : 'gemini-pro';
   const model = genAI.getGenerativeModel({ 
     model: modelName,
@@ -46,10 +46,10 @@ export async function cosmicFlow(
     const filePart = fileToGenerativePart(file.data, 'image/png'); // Assuming png for now
     const result = await chat.sendMessage([query, filePart]);
     const response = await result.response;
-    return response.text();
+    return response;
   } else {
     const result = await chat.sendMessage(query);
     const response = await result.response;
-    return response.text();
+    return response;
   }
 }

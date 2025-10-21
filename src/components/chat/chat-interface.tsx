@@ -150,16 +150,12 @@ export function ChatInterface() {
     } catch (error) {
       console.error(error);
       playErrorSound();
-      const currentMessages = [...newMessages]; // Use the latest state
-      const userMessageIndex = currentMessages.findIndex(m => m.id === userMessage.id);
-      if (userMessageIndex !== -1) {
-          setMessages(currentMessages.slice(0, userMessageIndex + 1));
-      }
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Something went wrong. Please try again.',
-      });
+      const errorMessage: ChatMessage = {
+        id: nanoid(),
+        role: 'assistant',
+        content: '**Error:** I apologize, but I encountered an error while processing your request. Please try again.',
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }

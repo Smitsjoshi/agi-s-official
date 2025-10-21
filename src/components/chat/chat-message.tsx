@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ThumbsUp, ThumbsDown, User, Loader2, Info, Link as LinkIcon, Globe } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, User, Loader2, Info, Link as LinkIcon, Globe, Bot } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { SourcePreview } from './source-preview';
 import { cn } from '@/lib/utils';
 import type { ChatMessage, SearchResult } from '@/lib/types';
-import { Logo } from '../logo';
 import { Card, CardContent } from '../ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { motion } from 'framer-motion';
@@ -103,7 +102,7 @@ export function ChatMessageDisplay({ message, isLoading = false }: { message: Ch
     <div className="flex items-start gap-4 relative z-10">
       <Avatar>
         <AvatarFallback>
-          <Logo className="p-1" />
+          <Bot />
         </AvatarFallback>
       </Avatar>
       <Card className="flex-1 max-w-4xl">

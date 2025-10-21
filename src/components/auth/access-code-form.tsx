@@ -14,7 +14,7 @@ import { useSession } from '@/hooks/use-session';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
-  accessCode: z.string().min(1, { message: 'Access code is required.' }),
+  password: z.string().min(1, { message: 'Password is required.' }),
 });
 
 export function AccessCodeForm() {
@@ -26,13 +26,13 @@ export function AccessCodeForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
-      accessCode: '',
+      password: '',
     },
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const user = await signIn(values.accessCode);
+      const user = await signIn(values.email, values.password);
       toast({
         title: 'Authentication Successful',
         description: `Welcome ${user.name}`,
@@ -65,10 +65,10 @@ export function AccessCodeForm() {
         />
         <FormField
           control={form.control}
-          name="accessCode"
+          name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Access Code</FormLabel>
+              <FormLabel>Password</FormLabel>
               <FormControl>
                 <Input type="password" placeholder="******" {...field} />
               </FormControl>

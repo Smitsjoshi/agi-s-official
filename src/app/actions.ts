@@ -18,18 +18,19 @@ export async function askAi(
     }
 
     // Here, you would add more complex logic based on the `mode` and `file` type.
-    // For this example, we'll keep it simple and just use the cosmicFlow.
+    // For this example, we'll just use the cosmicFlow.
     
     const result = await cosmicFlow(query, mode, chatHistory, file, options);
+    const answer = result.text();
 
     // Save chat to Firestore
     await addChatMessage({
       query,
-      answer: result,
+      answer,
       timestamp: new Date(),
     });
 
-    return { answer: result };
+    return { answer };
 
   } catch (error: any) {
     console.error("[askAi Error]", error);
