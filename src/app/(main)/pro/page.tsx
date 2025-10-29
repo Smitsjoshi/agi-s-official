@@ -8,15 +8,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Slider } from '@/components/ui/slider';
 
 const pages = [
-    { id: 'knowledgeChat', name: 'Standard AI Knowledge Chat', price: 100 },
-    { id: 'academicSearch', name: 'Advanced Academic & Code Search', price: 150 },
-    { id: 'documentAnalysis', name: 'Analyze Documents', price: 200 },
-    { id: 'videoGeneration', name: 'Generate Video', price: 250 },
-    { id: 'multiSourceAnalysis', name: 'Deep Dive Multi-Source Analysis', price: 300 },
-    { id: 'redTeamSimulations', name: 'Crucible Red Team Simulations', price: 350 },
+    { id: 'knowledgeChat', name: 'Standard AI Knowledge Chat', tiers: [{ name: 'Low', price: 50 }, { name: 'Medium', price: 100 }, { name: 'High', price: 150 }] },
+    { id: 'academicSearch', name: 'Advanced Academic & Code Search', tiers: [{ name: 'Low', price: 75 }, { name: 'Medium', price: 150 }, { name: 'High', price: 225 }] },
+    { id: 'documentAnalysis', name: 'Analyze Documents', tiers: [{ name: 'Low', price: 100 }, { name: 'Medium', price: 200 }, { name: 'High', price: 300 }] },
+    { id: 'videoGeneration', name: 'Generate Video', tiers: [{ name: 'Low', price: 125 }, { name: 'Medium', price: 250 }, { name: 'High', price: 375 }] },
+    { id: 'multiSourceAnalysis', name: 'Deep Dive Multi-Source Analysis', tiers: [{ name: 'Low', price: 150 }, { name: 'Medium', price: 300 }, { name: 'High', price: 450 }] },
+    { id: 'redTeamSimulations', name: 'Crucible Red Team Simulations', tiers: [{ name: 'Low', price: 175 }, { name: 'Medium', price: 350 }, { name: 'High', price: 525 }] },
 ];
 
 const tiers = [
@@ -63,7 +64,7 @@ const tiers = [
             { text: "Standard AI Knowledge Chat", included: true },
             { text: "Advanced Academic & Code Search", included: true },
             { text: "Unlimited Document Analysis", included: true },
-            { text: "Unlimited Video Generation (up to 30s)", included: true },
+            { text: "Unlimited Video Generation (up to 30s)", included:.    true },
             { text: "Deep Dive Multi-Source Analysis", included: true },
             { text: "Crucible Red Team Simulations", included: true },
             { text: "Collaborative Workspaces (Up to 5 Users)", included: true },
@@ -98,6 +99,7 @@ export default function ProPage() {
         Enterprise: 'yearly',
     });
     const [selectedPages, setSelectedPages] = useState<Record<string, boolean>>({});
+    const [usageTiers, setUsageTiers] = useState<Record<string, number>>({});
 
     const handleDurationChange = (tierName: string, value: Duration) => {
         setDurations(prev => ({...prev, [tierName]: value}));
@@ -107,9 +109,17 @@ export default function ProPage() {
         setSelectedPages(prev => ({ ...prev, [pageId]: !prev[pageId] }));
     };
 
+    const handleUsageChange = (pageId: string, value: number) => {
+        setUsageTiers(prev => ({ ...prev, [pageId]: value }));
+    };
+
     const calculateCustomPrice = () => {
         return pages.reduce((total, page) => {
-            return selectedPages[page.id] ? total + page.price : total;
+            if (selectedPages[page.id]) {
+                const tierIndex = usageTiers[page.id] || 0;
+                return total + page.tiers[tierIndex].price;
+            }
+            return total;
         }, 0);
     };
 
@@ -118,7 +128,12 @@ export default function ProPage() {
         const duration = durations[tierName];
         let message = `Hello! I am interested in the ${tierName} plan`;
         if (tierName === 'Custom') {
-            const customPages = pages.filter(page => selectedPages[page.id]).map(page => page.name);
+            const customPages = pages
+                .filter(page => selectedPages[page.id])
+                .map(page => {
+                    const tierIndex = usageTiers[page.id] || 0;
+                    return `${page.name} (${page.tiers[tierIndex].name} usage)`;
+                });
             message += ` with the following pages: ${customPages.join(', ')}. The total price is ₹${calculateCustomPrice()}`;
         } else if (tierName !== 'Enterprise') {
             message += ` with a ${duration} subscription.`;
@@ -222,23 +237,40 @@ export default function ProPage() {
                 </div>
 
                 <ul className="space-y-4 text-sm">
-                    {pages.map(page => (
-                        <li key={page.id} className="flex items-center justify-between p-2 rounded-lg transition-all duration-300"                        
+                    {pages.map(page => {
+                        const tierIndex = usageTiers[page.id] || 0;
+                        return (
+                        <li key={page.id} className="p-2 rounded-lg transition-all duration-300"
                         style={selectedPages[page.id] ? {background: 'rgba(var(--primary-rgb), 0.1)', boxShadow: '0 0 10px rgba(var(--primary-rgb), 0.3)'} : {}}>
-
-                            <div className="flex items-center">
-                                <label htmlFor={page.id} className="flex-1 cursor-pointer">{page.name}</label>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center">
+                                    <Checkbox
+                                        id={page.id}
+                                        checked={selectedPages[page.id]}
+                                        onCheckedChange={() => handlePageSelection(page.id)}
+                                        className="mr-2"
+                                    />
+                                    <label htmlFor={page.id} className="cursor-pointer">{page.name}</label>
+                                </div>
+                                <span>₹{page.tiers[tierIndex].price}</span>
                             </div>
-<div>
-                            <span className="mr-4">₹{page.price}</span>
-                            <Switch
-                                id={page.id}
-                                checked={selectedPages[page.id]}
-                                onCheckedChange={() => handlePageSelection(page.id)}
-                            />
-                            </div>
+                            {selectedPages[page.id] && (
+                                <div className="mt-2">
+                                    <Slider
+                                        defaultValue={[0]}
+                                        max={2}
+                                        step={1}
+                                        onValueChange={(value) => handleUsageChange(page.id, value[0])}
+                                    />
+                                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                                        <span>Low</span>
+                                        <span>Medium</span>
+                                        <span>High</span>
+                                    </div>
+                                </div>
+                            )}
                         </li>
-                    ))}
+                    )})}
                 </ul>
             </CardContent>
             <CardContent>
