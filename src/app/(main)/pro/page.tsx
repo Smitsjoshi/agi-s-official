@@ -64,7 +64,7 @@ const tiers = [
             { text: "Standard AI Knowledge Chat", included: true },
             { text: "Advanced Academic & Code Search", included: true },
             { text: "Unlimited Document Analysis", included: true },
-            { text: "Unlimited Video Generation (up to 30s)", included:.    true },
+            { text: "Unlimited Video Generation (up to 30s)", included: true },
             { text: "Deep Dive Multi-Source Analysis", included: true },
             { text: "Crucible Red Team Simulations", included: true },
             { text: "Collaborative Workspaces (Up to 5 Users)", included: true },
