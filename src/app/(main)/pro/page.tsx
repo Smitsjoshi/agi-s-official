@@ -8,6 +8,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { Switch } from '@/components/ui/switch';
+
+const pages = [
+    { id: 'knowledgeChat', name: 'Standard AI Knowledge Chat', price: 100 },
+    { id: 'academicSearch', name: 'Advanced Academic & Code Search', price: 150 },
+    { id: 'documentAnalysis', name: 'Analyze Documents', price: 200 },
+    { id: 'videoGeneration', name: 'Generate Video', price: 250 },
+    { id: 'multiSourceAnalysis', name: 'Deep Dive Multi-Source Analysis', price: 300 },
+    { id: 'redTeamSimulations', name: 'Crucible Red Team Simulations', price: 350 },
+];
 
 const tiers = [
     {
@@ -80,7 +90,6 @@ const tiers = [
 
 type Duration = "daily" | "weekly" | "monthly" | "yearly";
 
-
 export default function ProPage() {
     const [durations, setDurations] = useState<Record<string, Duration>>({
         Casual: 'monthly',
@@ -88,16 +97,30 @@ export default function ProPage() {
         Professional: 'monthly',
         Enterprise: 'yearly',
     });
+    const [selectedPages, setSelectedPages] = useState<Record<string, boolean>>({});
 
     const handleDurationChange = (tierName: string, value: Duration) => {
         setDurations(prev => ({...prev, [tierName]: value}));
     }
 
+    const handlePageSelection = (pageId: string) => {
+        setSelectedPages(prev => ({ ...prev, [pageId]: !prev[pageId] }));
+    };
+
+    const calculateCustomPrice = () => {
+        return pages.reduce((total, page) => {
+            return selectedPages[page.id] ? total + page.price : total;
+        }, 0);
+    };
+
     const generateWhatsAppLink = (tierName: string) => {
         const phoneNumber = "919687820005"; // Assuming Indian country code
         const duration = durations[tierName];
         let message = `Hello! I am interested in the ${tierName} plan`;
-        if (tierName !== 'Enterprise') {
+        if (tierName === 'Custom') {
+            const customPages = pages.filter(page => selectedPages[page.id]).map(page => page.name);
+            message += ` with the following pages: ${customPages.join(', ')}. The total price is ₹${calculateCustomPrice()}`;
+        } else if (tierName !== 'Enterprise') {
             message += ` with a ${duration} subscription.`;
         } else {
             message += '.';
@@ -180,9 +203,53 @@ export default function ProPage() {
                 </CardContent>
             </Card>
         )})}
+        <Card className="flex flex-col h-full bg-gradient-to-br from-primary/10 to-primary/20 shadow-lg shadow-primary/20 border-2 border-primary">
+            <CardHeader className="items-center text-center">
+                <div className="p-3 bg-primary/10 rounded-full border-4 border-primary/20 mb-2">
+                    <Sparkles className="h-8 w-8 text-primary animate-pulse" />
+                </div>
+                <CardTitle className="font-headline text-2xl">Custom Plan</CardTitle>
+                <CardDescription>Build your own plan by selecting the features you need.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1 space-y-6">
+                <div className="text-center">
+                    <div className="flex items-baseline justify-center gap-2">
+                        <span className="text-4xl font-bold text-primary animate-pulse">₹{calculateCustomPrice()}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                        per month
+                    </p>
+                </div>
+
+                <ul className="space-y-4 text-sm">
+                    {pages.map(page => (
+                        <li key={page.id} className="flex items-center justify-between p-2 rounded-lg transition-all duration-300"                        
+                        style={selectedPages[page.id] ? {background: 'rgba(var(--primary-rgb), 0.1)', boxShadow: '0 0 10px rgba(var(--primary-rgb), 0.3)'} : {}}>
+
+                            <div className="flex items-center">
+                                <label htmlFor={page.id} className="flex-1 cursor-pointer">{page.name}</label>
+                            </div>
+<div>
+                            <span className="mr-4">₹{page.price}</span>
+                            <Switch
+                                id={page.id}
+                                checked={selectedPages[page.id]}
+                                onCheckedChange={() => handlePageSelection(page.id)}
+                            />
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            </CardContent>
+            <CardContent>
+                <Button asChild className="w-full" size="lg">
+                    <Link href={generateWhatsAppLink('Custom')} target="_blank">
+                        Get Started
+                    </Link>
+                </Button>
+            </CardContent>
+        </Card>
       </div>
     </div>
   );
 }
-
-    
