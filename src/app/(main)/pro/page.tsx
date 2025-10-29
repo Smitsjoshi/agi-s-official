@@ -12,19 +12,19 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 
 const pages = [
-    { id: 'knowledgeChat', name: 'Standard AI Knowledge Chat', tiers: [{ name: 'Low', price: 50 }, { name: 'Medium', price: 100 }, { name: 'High', price: 150 }] },
-    { id: 'academicSearch', name: 'Advanced Academic & Code Search', tiers: [{ name: 'Low', price: 75 }, { name: 'Medium', price: 150 }, { name: 'High', price: 225 }] },
-    { id: 'documentAnalysis', name: 'Analyze Documents', tiers: [{ name: 'Low', price: 100 }, { name: 'Medium', price: 200 }, { name: 'High', price: 300 }] },
-    { id: 'videoGeneration', name: 'Generate Video', tiers: [{ name: 'Low', price: 125 }, { name: 'Medium', price: 250 }, { name: 'High', price: 375 }] },
-    { id: 'multiSourceAnalysis', name: 'Deep Dive Multi-Source Analysis', tiers: [{ name: 'Low', price: 150 }, { name: 'Medium', price: 300 }, { name: 'High', price: 450 }] },
-    { id: 'redTeamSimulations', name: 'Crucible Red Team Simulations', tiers: [{ name: 'Low', price: 175 }, { name: 'Medium', price: 350 }, { name: 'High', price: 525 }] },
+    { id: 'knowledgeChat', name: 'Core AI: General Chat & Task Automation', tiers: [{ name: 'Low', price: 60 }, { name: 'Medium', price: 120 }, { name: 'High', price: 180 }] },
+    { id: 'academicSearch', name: 'Specialized Agents: Scholar & CodeX', tiers: [{ name: 'Low', price: 90 }, { name: 'Medium', price: 180 }, { name: 'High', price: 270 }] },
+    { id: 'documentAnalysis', name: 'Analyst Agent: Deep Document Insights', tiers: [{ name: 'Low', price: 120 }, { name: 'Medium', price: 240 }, { name: 'High', price: 360 }] },
+    { id: 'videoGeneration', name: 'Multimedia AI: Video Generation', tiers: [{ name: 'Low', price: 150 }, { name: 'Medium', price: 300 }, { name: 'High', price: 450 }] },
+    { id: 'multiSourceAnalysis', name: 'Agent Hive Mind: Collaborative Analysis', tiers: [{ name: 'Low', price: 180 }, { name: 'Medium', price: 360 }, { name: 'High', price: 540 }] },
+    { id: 'redTeamSimulations', name: 'Crucible: AI Red Teaming Simulations', tiers: [{ name: 'Low', price: 210 }, { name: 'Medium', price: 420 }, { name: 'High', price: 630 }] },
 ];
 
 const tiers = [
     {
         name: "Casual",
         icon: Sparkles,
-        prices: { daily: "₹25", weekly: "₹150", monthly: "₹500", yearly: "₹5,000" },
+        prices: { daily: "₹30", weekly: "₹180", monthly: "₹600", yearly: "₹6,000" },
         description: "For occasional use and trying out core features.",
         features: [
             { text: "Standard AI Knowledge Chat", included: true },
@@ -41,7 +41,7 @@ const tiers = [
     {
         name: "Student",
         icon: BrainCircuit,
-        prices: { daily: "₹50", weekly: "₹300", monthly: "₹999", yearly: "₹9,999" },
+        prices: { daily: "₹60", weekly: "₹360", monthly: "₹1,199", yearly: "₹11,999" },
         description: "For students and researchers who need powerful learning tools.",
         features: [
             { text: "Standard AI Knowledge Chat", included: true },
@@ -58,7 +58,7 @@ const tiers = [
     {
         name: "Professional",
         icon: Shield,
-        prices: { daily: "₹100", weekly: "₹600", monthly: "₹1,999", yearly: "₹19,999" },
+        prices: { daily: "₹120", weekly: "₹720", monthly: "₹2,399", yearly: "₹23,999" },
         description: "For professionals and power users who need the full suite of tools.",
         features: [
             { text: "Standard AI Knowledge Chat", included: true },
