@@ -45,6 +45,7 @@
     "firebase-admin": "^13.5.0",
     "framer-motion": "^11.5.7",
     "genkit": "^1.20.0",
+    "genkitx-ollama": "^1.24.0",
     "howler": "^2.2.4",
     "lucide-react": "^0.475.0",
     "nanoid": "^5.0.7",

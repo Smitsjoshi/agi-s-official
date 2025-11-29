@@ -84,6 +84,7 @@ export const webSearchFlow = ai.defineFlow(
     outputSchema: WebSearchOutputSchema,
   },
   async (input) => {
+    // Use the configured Ollama model
     const llmResponse = await webSearchPrompt(input);
     const output = llmResponse.output;
 

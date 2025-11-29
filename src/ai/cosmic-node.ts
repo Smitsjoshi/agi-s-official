@@ -1,16 +1,5 @@
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
+import { ai } from './genkit';
 import type { AiMode, ChatMessage } from '@/lib/types';
-
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY as string);
-
-function fileToGenerativePart(data: string, mimeType: string) {
-  return {
-    inlineData: {
-      data,
-      mimeType
-    },
-  };
-}
 
 export async function cosmicFlow(
   query: string,
@@ -19,37 +8,29 @@ export async function cosmicFlow(
   file?: { type: 'image' | 'pdf' | 'csv' | 'json'; data: string },
   options?: any,
 ): Promise<any> {
-  const modelName = file ? 'gemini-pro-vision' : 'gemini-pro';
-  const model = genAI.getGenerativeModel({ 
-    model: modelName,
-    safetySettings: [
-      {
-        category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-        threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-      },
-    ]
-  });
+  // Construct a prompt that includes history and the current query
+  let prompt = query;
+  if (chatHistory.length > 0) {
+    const historyText = chatHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n');
+    prompt = `Previous conversation:\n${historyText}\n\nUser: ${query}`;
+  }
 
-  const history = chatHistory.map(chat => ({
-    role: chat.role === 'user' ? 'user' : 'model',
-    parts: [{ text: chat.content }],
-  }));
+  // TODO: Handle file input with Ollama (multimodal support depends on the model)
+  if (file) {
+    console.warn("File input provided but multimodal support with Ollama needs specific model configuration. Proceeding with text only for now.");
+    prompt += `\n\n[User attached a file of type ${file.type}, but I cannot see it yet.]`;
+  }
 
-  const chat = model.startChat({
-    history: history,
-    generationConfig: {
-      maxOutputTokens: 1000,
+  const result = await ai.generate({
+    prompt: prompt,
+    model: 'ollama/llama3.2',
+    config: {
+      temperature: 0.7,
     },
   });
 
-  if (file) {
-    const filePart = fileToGenerativePart(file.data, 'image/png'); // Assuming png for now
-    const result = await chat.sendMessage([query, filePart]);
-    const response = await result.response;
-    return response;
-  } else {
-    const result = await chat.sendMessage(query);
-    const response = await result.response;
-    return response;
-  }
+  console.log('Ollama Result:', JSON.stringify(result, null, 2));
+  console.log('Ollama Result Text:', result.text);
+
+  return result.text;
 }

@@ -21,16 +21,15 @@ export async function askAi(
 
     // Here, you would add more complex logic based on the `mode` and `file` type.
     // For this example, we'll just use the cosmicFlow.
-    
-    const result = await cosmicFlow(query, mode, chatHistory, file, options);
-    const answer = result.text();
+
+    const answer = await cosmicFlow(query, mode, chatHistory, file, options);
 
     // Save chat to Firestore
-    await addChatMessage({
-      query,
-      answer,
-      timestamp: new Date(),
-    });
+    // await addChatMessage({
+    //   query,
+    //   answer,
+    //   timestamp: new Date(),
+    // });
 
     return { answer };
 
@@ -38,19 +37,19 @@ export async function askAi(
     console.error("[askAi Error]", error);
     // Log the error to your preferred logging service
 
-    return { 
-      error: process.env.NODE_ENV === 'development' 
-        ? error.message 
+    return {
+      error: process.env.NODE_ENV === 'development'
+        ? error.message
         : 'An unexpected error occurred. Please try again.'
     };
   }
 }
 
 export async function createAgentAction(data: { name: string; persona: string; knowledgeBaseUrls: string[] }) {
-    console.log('Creating agent with data:', data);
-    // In a real application, you would save this to a database.
-    // For now, we'll just simulate a successful creation.
-    return { success: true };
+  console.log('Creating agent with data:', data);
+  // In a real application, you would save this to a database.
+  // For now, we'll just simulate a successful creation.
+  return { success: true };
 }
 
 export async function generateSynthesisAction(input: {
@@ -130,11 +129,11 @@ export async function generateCrucibleAction(input: CrucibleInput): Promise<{ su
           analysis: `This market is already saturated with established players. Your core features can be easily replicated by our team in a single quarter. We can leverage our existing user base to offer a similar, or even better, product at a lower price point or as a free add-on to our current suite. Your go-to-market strategy doesn't present a significant barrier to entry.`
         };
       case 'ethicist':
-          return {
-            personaName: persona.name,
-            keyConcerns: ['Data Privacy', 'Algorithmic Bias', 'Potential for Misuse'],
-            analysis: `The plan to collect user data for productivity analysis raises significant ethical questions. How will you ensure user privacy and prevent this data from being used for surveillance? There's also a risk of algorithmic bias, where the app might unfairly penalize certain work styles. We must consider the potential for this tool to be used by employers in ways that harm employee well-being.`
-          }
+        return {
+          personaName: persona.name,
+          keyConcerns: ['Data Privacy', 'Algorithmic Bias', 'Potential for Misuse'],
+          analysis: `The plan to collect user data for productivity analysis raises significant ethical questions. How will you ensure user privacy and prevent this data from being used for surveillance? There's also a risk of algorithmic bias, where the app might unfairly penalize certain work styles. We must consider the potential for this tool to be used by employers in ways that harm employee well-being.`
+        }
       default:
         return {
           personaName: persona.name,
@@ -178,7 +177,7 @@ export async function generateCatalystAction(input: CatalystInput): Promise<{ su
             name: 'Feeding and Maintaining Your Starter',
             explanation: 'A starter needs regular \'feedings\' to stay active and healthy. We\'ll cover feeding schedules, signs of a healthy starter, and how to troubleshoot common issues.',
             resources: [
-               { title: 'The Perfect Loaf - Sourdough Starter Maintenance', url: 'https://www.theperfectloaf.com/sourdough-starter-maintenance-routine/', type: 'Article' }
+              { title: 'The Perfect Loaf - Sourdough Starter Maintenance', url: 'https://www.theperfectloaf.com/sourdough-starter-maintenance-routine/', type: 'Article' }
             ]
           }
         ],
@@ -194,7 +193,7 @@ export async function generateCatalystAction(input: CatalystInput): Promise<{ su
       {
         title: 'Module 2: Your First Loaf - Mixing, Shaping, and Baking',
         concepts: [
-           {
+          {
             name: 'Baker\'s Percentages and Basic Dough Formula',
             explanation: 'Learn the fundamentals of dough composition using baker\'s percentages to ensure consistency and allow for easy recipe scaling.',
             resources: [
@@ -229,7 +228,7 @@ export async function generateContinuumAction(input: ContinuumInput): Promise<{ 
 
   // In a real app, this would call the Continuum AI flow.
   await new Promise(resolve => setTimeout(resolve, 3000));
-  
+
   const isFuture = input.eventDescription.includes('20') || input.eventDescription.toLowerCase().includes('future');
 
   const mockOutput: ContinuumOutput = {
@@ -238,7 +237,7 @@ export async function generateContinuumAction(input: ContinuumInput): Promise<{ 
     mainImageUrl: 'https://storage.googleapis.com/cosmic-verve-static-assets/continuum-placeholder.png',
     narrative: {
       title: 'An Eyewitness Account',
-      story: isFuture 
+      story: isFuture
         ? `The crimson dust of Mars clung to everything. From my viewport in Neo-Olympia, I saw the first city lights flicker to life. We had done it. Humanity was now a multi-planetary species. The air recyclers hummed a constant, reassuring tune, a stark contrast to the silent, cold void outside. It was a moment of triumph, tinged with the immense weight of the unknown that lay ahead of us on this new frontier.`
         : `The static in my headset crackled. \"The Eagle has landed,\" a voice said, a quarter-million miles away. We were holding our breath in Mission Control. The world was. Time seemed to stop. Then, those first, ghostly images appeared on the monitor. A boot, stepping onto the lunar surface. A flag, planted where no flag had flown before. It was a moment that united the entire planet in awe and wonder.`
     },
@@ -262,7 +261,7 @@ export async function generateContinuumAction(input: ContinuumInput): Promise<{ 
           ? 'The discovery of even simple Martian life would have fundamentally altered science, philosophy, and religion overnight, forcing humanity to reconsider its place in the cosmos.'
           : 'Finding life, even microbial, on the Moon would have been the single greatest scientific discovery in history, shifting global priorities towards space exploration and astrobiology research on an unprecedented scale.'
       },
-       {
+      {
         scenario: 'What if the political climate was different?',
         description: isFuture
           ? 'Without the backdrop of a unified Earth government, the mission could have been a point of conflict, a race for resources and territory rather than a collaborative human endeavor.'
@@ -279,7 +278,7 @@ export async function generateAetherAction(input: AetherInput): Promise<{ succes
 
   // In a real app, this would call the Aether AI flow.
   await new Promise(resolve => setTimeout(resolve, 2500));
-  
+
   const mockOutput: AetherOutput = {
     id: nanoid(),
     timestamp: new Date().toISOString(),
@@ -350,24 +349,24 @@ export async function generateCosmosAction(input: CosmosInput): Promise<{ succes
 }
 
 export async function generateAudioAction(input: AudioInput): Promise<{ success: boolean; data?: AudioOutput; error?: string; }> {
-    console.log("Generating audio for text:", input.text.substring(0, 50) + "...");
-    console.log("Selected voice:", input.voice);
+  console.log("Generating audio for text:", input.text.substring(0, 50) + "...");
+  console.log("Selected voice:", input.voice);
 
-    await new Promise(resolve => setTimeout(resolve, 1500));
+  await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // In a real app, you would call your TTS provider here and get back a real audio URI.
-    const mockAudioDataUri = "https://storage.googleapis.com/cosmic-verve-static-assets/mock-audio.mp3";
+  // In a real app, you would call your TTS provider here and get back a real audio URI.
+  const mockAudioDataUri = "https://storage.googleapis.com/cosmic-verve-static-assets/mock-audio.mp3";
 
-    return { success: true, data: { audioDataUri: mockAudioDataUri } };
+  return { success: true, data: { audioDataUri: mockAudioDataUri } };
 }
 
 export async function generateVideoAction(prompt: VideoInput): Promise<{ success: boolean; data?: VideoOutput; error?: string; }> {
-    console.log("Generating video for prompt:", prompt);
+  console.log("Generating video for prompt:", prompt);
 
-    await new Promise(resolve => setTimeout(resolve, 5000));
+  await new Promise(resolve => setTimeout(resolve, 5000));
 
-    // In a real app, you would call your video generation provider here.
-    const mockVideoDataUri = "https://storage.googleapis.com/cosmic-verve-static-assets/mock-video.mp4";
+  // In a real app, you would call your video generation provider here.
+  const mockVideoDataUri = "https://storage.googleapis.com/cosmic-verve-static-assets/mock-video.mp4";
 
-    return { success: true, data: { videoDataUri: mockVideoDataUri } };
+  return { success: true, data: { videoDataUri: mockVideoDataUri } };
 }

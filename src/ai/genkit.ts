@@ -1,10 +1,15 @@
-import {genkit} from 'genkit';
-import {googleAI} from '@genkit-ai/google-genai';
+import { genkit } from 'genkit';
+import { ollama } from 'genkitx-ollama';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
 
 export const ai = genkit({
-  plugins: [googleAI({apiVersion: 'v1beta'})],
-  model: 'googleai/gemini-pro',
+  plugins: [
+    ollama({
+      models: [{ name: 'llama3.2' }],
+      serverAddress: 'http://127.0.0.1:11434', // default ollama local address
+    }),
+  ],
+  model: 'ollama/llama3.2',
 });
