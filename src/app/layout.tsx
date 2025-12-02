@@ -7,6 +7,7 @@ import { TranslateProvider } from "@/components/translate-provider";
 import { TourProvider } from "@/components/tour-provider";
 import { TourTooltip } from "@/components/tour-tooltip";
 import "./globals.css";
+import "katex/dist/katex.min.css";
 import { Inter, Space_Grotesk } from 'next/font/google';
 
 const inter = Inter({

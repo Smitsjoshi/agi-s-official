@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ThumbsUp, ThumbsDown, User, Loader2, Info, Link as LinkIcon, Globe, Bot } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, User, Loader2, Info, Link as LinkIcon, Globe, Bot, Copy, Check, RotateCcw } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { SourcePreview } from './source-preview';
@@ -10,64 +10,120 @@ import type { ChatMessage, SearchResult } from '@/lib/types';
 import { Card, CardContent } from '../ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { motion } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import { useTheme } from 'next-themes';
+import { fadeInUp } from '@/lib/ui-animations';
 
-// Custom hook for word-by-word typewriter effect
-const useTypewriter = (text: string, speed = 100) => {
-  const [displayText, setDisplayText] = useState('');
-  
-  useEffect(() => {
-    if (!text) return;
+// Code block component with copy functionality
+const CodeBlock = ({ language, value }: { language: string; value: string }) => {
+  const [copied, setCopied] = useState(false);
+  const { theme } = useTheme();
 
-    setDisplayText(''); // Reset on new message
-    const words = text.split(' ');
-    let i = 0;
+  const handleCopy = () => {
+    navigator.clipboard.writeText(value);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
-    const timer = setInterval(() => {
-      if (i < words.length) {
-        setDisplayText(prev => (prev ? `${prev} ${words[i]}` : words[i]));
-        i++;
-      } else {
-        clearInterval(timer);
-      }
-    }, speed);
-
-    return () => clearInterval(timer);
-  }, [text, speed]);
-
-  return displayText;
+  return (
+    <div className="relative group">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute right-2 top-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        onClick={handleCopy}
+      >
+        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+      </Button>
+      <SyntaxHighlighter
+        language={language || 'text'}
+        style={theme === 'dark' ? oneDark : oneLight}
+        customStyle={{
+          margin: 0,
+          borderRadius: '0.5rem',
+          fontSize: '0.875rem'
+        }}
+      >
+        {value}
+      </SyntaxHighlighter>
+    </div>
+  );
 };
 
-// A simple markdown-to-html renderer
-const SimpleMarkdown = ({ content }: { content: string }) => {
-    const typedContent = useTypewriter(content, 20); // Faster speed for main content
-    const html = typedContent
-      .replace(/```([\s\S]*?)```/g, '<pre class="bg-muted p-3 rounded-md my-2 overflow-x-auto"><code>$1</code></pre>')
-      .replace(/`([^`]+)`/g, '<code class="bg-muted px-1 rounded-sm">$1</code>')
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/\n/g, '<br />');
-    return <div dangerouslySetInnerHTML={{ __html: html }} className="prose prose-sm dark:prose-invert max-w-none" />;
+// Enhanced markdown renderer
+const EnhancedMarkdown = ({ content }: { content: string }) => {
+  return (
+    <div className="prose prose-sm dark:prose-invert max-w-none">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[rehypeKatex]}
+        components={{
+          code({ node, inline, className, children, ...props }) {
+            const match = /language-(\w+)/.exec(className || '');
+            const value = String(children).replace(/\n$/, '');
+
+            return !inline && match ? (
+              <CodeBlock language={match[1]} value={value} />
+            ) : (
+              <code className="bg-muted px-1.5 py-0.5 rounded-sm text-sm font-mono" {...props}>
+                {children}
+              </code>
+            );
+          },
+          table({ children }) {
+            return (
+              <div className="overflow-x-auto my-4">
+                <table className="min-w-full divide-y divide-border">
+                  {children}
+                </table>
+              </div>
+            );
+          },
+          a({ href, children }) {
+            return (
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline inline-flex items-center gap-1"
+              >
+                {children}
+                <LinkIcon className="h-3 w-3" />
+              </a>
+            );
+          }
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    </div>
+  );
 };
 
 const SearchResultDisplay = ({ result }: { result: SearchResult }) => {
-    const url = new URL(result.url);
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-6"
-        >
-            <a href={result.url} target="_blank" rel="noopener noreferrer" className="group">
-                <div className="flex items-center text-sm">
-                    <Globe className="w-4 h-4 mr-2 text-muted-foreground" />
-                    <span className="text-muted-foreground truncate">{url.hostname}</span>
-                </div>
-                <h3 className="text-blue-400 group-hover:underline text-lg font-medium mt-1">{result.title}</h3>
-            </a>
-            <p className="text-sm text-neutral-400 mt-1">{result.snippet}</p>
-        </motion.div>
-    );
+  const url = new URL(result.url);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="mb-6"
+    >
+      <a href={result.url} target="_blank" rel="noopener noreferrer" className="group">
+        <div className="flex items-center text-sm">
+          <Globe className="w-4 h-4 mr-2 text-muted-foreground" />
+          <span className="text-muted-foreground truncate">{url.hostname}</span>
+        </div>
+        <h3 className="text-blue-400 group-hover:underline text-lg font-medium mt-1">{result.title}</h3>
+      </a>
+      <p className="text-sm text-neutral-400 mt-1">{result.snippet}</p>
+    </motion.div>
+  );
 };
 
 
@@ -80,7 +136,7 @@ export function ChatMessageDisplay({ message, isLoading = false }: { message: Ch
         <div className="flex-1 rounded-lg bg-primary text-primary-foreground p-4 max-w-2xl">
           <p className="whitespace-pre-wrap">{message.content}</p>
         </div>
-         <Avatar>
+        <Avatar>
           <AvatarFallback>
             <User />
           </AvatarFallback>
@@ -99,7 +155,12 @@ export function ChatMessageDisplay({ message, isLoading = false }: { message: Ch
   const isLiveAgentResponse = !!message.liveWebAgentOutput;
 
   return (
-    <div className="flex items-start gap-4 relative z-10">
+    <motion.div
+      className="flex items-start gap-4 relative z-10"
+      variants={fadeInUp}
+      initial="hidden"
+      animate="visible"
+    >
       <Avatar>
         <AvatarFallback>
           <Bot />
@@ -115,15 +176,15 @@ export function ChatMessageDisplay({ message, isLoading = false }: { message: Ch
           ) : (
             <TooltipProvider delayDuration={100}>
               <div className="text-sm">
-                <SimpleMarkdown content={message.content} />
+                <EnhancedMarkdown content={message.content} />
               </div>
 
               {isLiveAgentResponse && message.liveWebAgentOutput.results && message.liveWebAgentOutput.results.length > 0 && (
                 <div>
                   <h4 className="font-semibold mb-3 text-base">Agent Results:</h4>
-                   <div className="border-t pt-4">
+                  <div className="border-t pt-4">
                     {message.liveWebAgentOutput.results.map((result, index) => (
-                       <SearchResultDisplay key={index} result={result} />
+                      <SearchResultDisplay key={index} result={result} />
                     ))}
                   </div>
                 </div>
@@ -141,30 +202,30 @@ export function ChatMessageDisplay({ message, isLoading = false }: { message: Ch
               )}
 
               {isFinishedTyping && (message.reasoning || message.confidenceScore) && !isLiveAgentResponse && (
-                 <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/50 p-2 rounded-md">
-                    {message.reasoning && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button className="flex items-center gap-1.5 hover:text-foreground">
-                            <Info className="h-4 w-4" />
-                            <span>Show reasoning</span>
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" align="start" className="max-w-sm z-50">
-                          <p>{message.reasoning}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
-                    <div className="flex-1"></div> {/* Spacer */}
-                    {message.confidenceScore && (
-                        <div className="flex items-center gap-2">
-                           <span className="font-semibold">Confidence:</span>
-                           <span className={cn("font-bold", confidenceColor(message.confidenceScore))}>
-                            {(message.confidenceScore * 100).toFixed(0)}%
-                           </span>
-                        </div>
-                      )}
-                 </div>
+                <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/50 p-2 rounded-md">
+                  {message.reasoning && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button className="flex items-center gap-1.5 hover:text-foreground">
+                          <Info className="h-4 w-4" />
+                          <span>Show reasoning</span>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" align="start" className="max-w-sm z-50">
+                        <p>{message.reasoning}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                  <div className="flex-1"></div> {/* Spacer */}
+                  {message.confidenceScore && (
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold">Confidence:</span>
+                      <span className={cn("font-bold", confidenceColor(message.confidenceScore))}>
+                        {(message.confidenceScore * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  )}
+                </div>
               )}
 
               {isFinishedTyping && (
@@ -191,6 +252,6 @@ export function ChatMessageDisplay({ message, isLoading = false }: { message: Ch
           )}
         </CardContent>
       </Card>
-    </div>
+    </motion.div>
   );
 }
