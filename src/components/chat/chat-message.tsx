@@ -56,7 +56,7 @@ const CodeBlock = ({ language, value }: { language: string; value: string }) => 
 };
 
 // Enhanced markdown renderer
-const EnhancedMarkdown = ({ content }: { content: string }) => {
+const EnhancedMarkdown = ({ content = '' }: { content: string }) => {
   return (
     <div className="prose prose-sm dark:prose-invert max-w-none">
       <ReactMarkdown

@@ -1,15 +1,15 @@
 import { genkit } from 'genkit';
-import { ollama } from 'genkitx-ollama';
+import { openAI } from 'genkitx-openai';
 import * as dotenv from 'dotenv';
 
-dotenv.config();
+dotenv.config({ path: '.env.local' });
 
 export const ai = genkit({
   plugins: [
-    ollama({
-      models: [{ name: 'llama3.2' }],
-      serverAddress: 'http://127.0.0.1:11434', // default ollama local address
+    openAI({
+      apiKey: process.env.GROQ_API_KEY,
+      baseURL: 'https://api.groq.com/openai/v1',
     }),
   ],
-  model: 'ollama/llama3.2',
+  model: 'openai/llama3-70b-8192', // Using Groq's Llama 3 70B
 });

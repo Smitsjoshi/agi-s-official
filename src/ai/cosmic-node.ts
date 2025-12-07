@@ -23,7 +23,7 @@ export async function cosmicFlow(
 
   const result = await ai.generate({
     prompt: prompt,
-    model: 'ollama/llama3.2',
+    model: 'openai/llama3-70b-8192',
     config: {
       temperature: 0.7,
     },

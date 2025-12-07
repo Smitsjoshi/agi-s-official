@@ -51,10 +51,19 @@ export function ChatInterface() {
   const [file, setFile] = useState<{ name: string; type: 'image' | 'pdf'; data: string } | null>(null);
   const [isClient, setIsClient] = useState(false);
 
+  const [slashCommandOpen, setSlashCommandOpen] = useState(false);
+  const [slashFilter, setSlashFilter] = useState('');
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  
+
+  const allModes = [...MAIN_AI_MODES, ...PERSONAS];
+  const filteredModes = allModes.filter(m =>
+    m.toLowerCase().includes(slashFilter.toLowerCase())
+  );
+
   const playSendSound = useSound('/sounds/send.mp3');
   const playReceiveSound = useSound('/sounds/receive.mp3');
   const playErrorSound = useSound('/sounds/error.mp3');
@@ -80,21 +89,69 @@ export function ChatInterface() {
     };
   }, [setMessages]);
 
-  useEffect(() => {
+  const scrollToBottom = () => {
     if (scrollAreaRef.current) {
-        const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
-        if (viewport) {
-            viewport.scrollTop = viewport.scrollHeight;
-        }
+      const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        setTimeout(() => {
+          viewport.scrollTop = viewport.scrollHeight;
+        }, 100);
+      }
     }
+  };
+
+  useEffect(() => {
+    scrollToBottom();
   }, [messages]);
-  
+
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
     if (lastMessage?.role === 'assistant') {
       playReceiveSound();
     }
   }, [messages, playReceiveSound]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setInput(value);
+
+    if (value.startsWith('/')) {
+      setSlashCommandOpen(true);
+      setSlashFilter(value.substring(1));
+      setSelectedIndex(0);
+    } else {
+      setSlashCommandOpen(false);
+    }
+  };
+
+  const selectMode = (selectedMode: AiMode) => {
+    setMode(selectedMode);
+    setInput('');
+    setSlashCommandOpen(false);
+    toast({ title: `Switched to ${selectedMode}` });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (slashCommandOpen) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev + 1) % filteredModes.length);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev - 1 + filteredModes.length) % filteredModes.length);
+      } else if (e.key === 'Enter' || e.key === 'Tab') {
+        e.preventDefault();
+        if (filteredModes.length > 0) {
+          selectMode(filteredModes[selectedIndex]);
+        }
+      } else if (e.key === 'Escape') {
+        setSlashCommandOpen(false);
+      }
+    } else if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -121,7 +178,7 @@ export function ChatInterface() {
 
     const userMessage: ChatMessage = { id: nanoid(), role: 'user', content: input };
     const newMessages = [...messages, userMessage];
-    
+
     setMessages(newMessages);
     setIsLoading(true);
     setInput('');
@@ -129,10 +186,15 @@ export function ChatInterface() {
 
     try {
       const result = await askAi(input, mode, newMessages, file || undefined);
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
       const assistantMessage: ChatMessage = {
         id: nanoid(),
         role: 'assistant',
-        content: result.answer || result.componentCode || result.summary,
+        content: result.answer || result.componentCode || result.summary || '',
         sources: result.sources,
         reasoning: result.reasoning,
         confidenceScore: result.confidenceScore,
@@ -166,161 +228,188 @@ export function ChatInterface() {
           <div className="p-4 md:p-6 space-y-6">
             {messages.length === 0 && !isLoading && (
               <div className="flex flex-col items-center justify-center h-full text-center relative">
-                  <div className="liquid-glow"></div>
-                  <div className="relative z-10 p-4 bg-primary/10 rounded-full border-4 border-primary/20 mb-4">
-                      <Cpu size={40} className="text-primary" />
-                  </div>
-                  <div className="flex items-center justify-center gap-2 z-10">
-                    <h2 className="font-headline text-2xl font-semibold">Welcome to</h2>
-                    <Logo className="h-10 text-2xl" />
-                  </div>
-                  <p className="text-muted-foreground z-10 font-medium text-lg mt-2">One Interface. Infinite Capabilities.</p>
-                  <p className="text-muted-foreground z-10 max-w-2xl mx-auto mt-4">
-                      AGI-S is built to be the one-stop solution for all your AI needs. This may result in a comprehensive application with many pages and powerful offerings, but our core goal is to fulfill all your requirements in one place, providing a truly integrated and seamless experience.
-                  </p>
+                <div className="liquid-glow"></div>
+                <div className="relative z-10 p-4 bg-primary/10 rounded-full border-4 border-primary/20 mb-4">
+                  <Cpu size={40} className="text-primary" />
+                </div>
+                <div className="flex items-center justify-center gap-2 z-10">
+                  <h2 className="font-headline text-2xl font-semibold">Welcome to</h2>
+                  <Logo className="h-10 text-2xl" />
+                </div>
+                <p className="text-muted-foreground z-10 font-medium text-lg mt-2">One Interface. Infinite Capabilities.</p>
+                <p className="text-muted-foreground z-10 max-w-2xl mx-auto mt-4">
+                  AGI-S is built to be the one-stop solution for all your AI needs. This may result in a comprehensive application with many pages and powerful offerings, but our core goal is to fulfill all your requirements in one place, providing a truly integrated and seamless experience.
+                </p>
               </div>
             )}
             {messages.map((msg) => (
               <ChatMessageDisplay key={msg.id} message={msg} />
             ))}
-            {isLoading && messages[messages.length-1]?.role === 'user' && (
+            {isLoading && messages[messages.length - 1]?.role === 'user' && (
               <ChatMessageDisplay message={{ id: 'loading', role: 'assistant', content: '' }} isLoading={true} />
             )}
           </div>
         </ScrollArea>
       </div>
 
-      <div className="border-t bg-background/95 p-2 backdrop-blur-sm sticky bottom-0">
+      <div className="border-t bg-background/95 p-2 backdrop-blur-sm sticky bottom-0 z-20">
+        {slashCommandOpen && (
+          <div className="absolute bottom-full left-2 mb-2 w-64 bg-popover border rounded-md shadow-lg overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2">
+            <div className="p-2 border-b text-xs font-medium text-muted-foreground">
+              Select Mode
+            </div>
+            <ScrollArea className="h-48">
+              <div className="p-1">
+                {filteredModes.length === 0 ? (
+                  <div className="p-2 text-sm text-muted-foreground text-center">No modes found</div>
+                ) : (
+                  filteredModes.map((m, index) => {
+                    const { icon: Icon } = AI_MODE_DETAILS[m];
+                    return (
+                      <div
+                        key={m}
+                        className={cn(
+                          "flex items-center gap-2 p-2 rounded-sm cursor-pointer text-sm",
+                          index === selectedIndex ? "bg-accent text-accent-foreground" : "hover:bg-muted"
+                        )}
+                        onClick={() => selectMode(m)}
+                        onMouseEnter={() => setSelectedIndex(index)}
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span>{m}</span>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+        )}
         <div className="relative rounded-lg border bg-background">
           <form
             onSubmit={handleSubmit}
             className="flex items-center gap-2 p-1"
           >
-             <Popover>
+            <Popover>
               <PopoverTrigger asChild>
-                  <Button variant="outline" className="shrink-0 w-44 justify-start font-medium tour-mode-selector" disabled={isLoading}>
-                      <ModeIcon className="h-4 w-4 mr-2 text-primary" />
-                      <span className="flex-1 text-left truncate text-sm">{mode}</span>
-                  </Button>
+                <Button variant="outline" className="shrink-0 w-44 justify-start font-medium tour-mode-selector" disabled={isLoading}>
+                  <ModeIcon className="h-4 w-4 mr-2 text-primary" />
+                  <span className="flex-1 text-left truncate text-sm">{mode}</span>
+                </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[26rem] p-0 mb-2">
                 <ScrollArea className="h-[32rem]">
-                <div className="p-4 grid gap-4">
-                  <div className="space-y-2">
-                    <h4 className="font-medium leading-none">AI Modes</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Select a specialized AI agent for your task.
-                    </p>
-                  </div>
-                   <div className="grid gap-2">
-                    {MAIN_AI_MODES.map((m) => {
-                      const { icon: Icon, description } = AI_MODE_DETAILS[m];
-                      return (
-                        <div
-                          key={m}
-                          onClick={() => setMode(m)}
-                          className={cn(
-                            'flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-colors',
-                             mode === m ? 'bg-secondary' : 'hover:bg-muted/50'
-                          )}
-                        >
+                  <div className="p-4 grid gap-4">
+                    <div className="space-y-2">
+                      <h4 className="font-medium leading-none">AI Modes</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Select a specialized AI agent for your task.
+                      </p>
+                    </div>
+                    <div className="grid gap-2">
+                      {MAIN_AI_MODES.map((m) => {
+                        const { icon: Icon, description } = AI_MODE_DETAILS[m];
+                        return (
+                          <div
+                            key={m}
+                            onClick={() => setMode(m)}
+                            className={cn(
+                              'flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-colors',
+                              mode === m ? 'bg-secondary' : 'hover:bg-muted/50'
+                            )}
+                          >
                             <Icon className="h-5 w-5 mt-0.5 text-primary" />
                             <div>
-                                <div className="flex items-center gap-2">
-                                  <p className="font-medium text-sm">{m}</p>
-                                </div>
-                                <p className="text-xs text-muted-foreground">{description}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium text-sm">{m}</p>
+                              </div>
+                              <p className="text-xs text-muted-foreground">{description}</p>
                             </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <Separator />
-                  <div className="space-y-2">
-                    <h4 className="font-medium leading-none">Personas</h4>
-                     <p className="text-sm text-muted-foreground">
-                      Chat with a specialized persona.
-                    </p>
-                  </div>
-                   <div className="grid gap-2">
-                    {PERSONAS.map((m) => {
-                      const { icon: Icon, description } = AI_MODE_DETAILS[m];
-                      return (
-                        <div
-                          key={m}
-                          onClick={() => setMode(m)}
-                          className={cn(
-                            'flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-colors',
-                             mode === m ? 'bg-secondary' : 'hover:bg-muted/50'
-                          )}
-                        >
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <Separator />
+                    <div className="space-y-2">
+                      <h4 className="font-medium leading-none">Personas</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Chat with a specialized persona.
+                      </p>
+                    </div>
+                    <div className="grid gap-2">
+                      {PERSONAS.map((m) => {
+                        const { icon: Icon, description } = AI_MODE_DETAILS[m];
+                        return (
+                          <div
+                            key={m}
+                            onClick={() => setMode(m)}
+                            className={cn(
+                              'flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-colors',
+                              mode === m ? 'bg-secondary' : 'hover:bg-muted/50'
+                            )}
+                          >
                             <Icon className="h-5 w-5 mt-0.5 text-primary" />
                             <div>
-                                <div className="flex items-center gap-2">
-                                  <p className="font-medium text-sm">{m}</p>
-                                </div>
-                                <p className="text-xs text-muted-foreground">{description}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium text-sm">{m}</p>
+                              </div>
+                              <p className="text-xs text-muted-foreground">{description}</p>
                             </div>
-                        </div>
-                      );
-                    })}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
                 </ScrollArea>
               </PopoverContent>
             </Popover>
             <Textarea
               value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={`Ask ${mode}...`}
+              onChange={handleInputChange}
+              placeholder={`Ask ${mode}... (Type / to switch mode)`}
               className="chat-input flex-1 resize-none border-0 shadow-none focus-visible:ring-0 text-base py-3"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSubmit(e);
-                }
-              }}
+              onKeyDown={handleKeyDown}
               disabled={isLoading}
               rows={1}
             />
-             <Button
-                type="button"
-                variant={isListening ? "destructive" : "ghost"}
-                size="icon"
-                className="shrink-0 h-8 w-8 tour-microphone-button"
-                onClick={() => {
-                  if (isListening) {
-                    stopListening();
-                  } else {
-                    startListening();
-                  }
-                }}
-                disabled={isLoading}
-              >
-                <Mic className="h-4 w-4" />
-              </Button>
-             <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="shrink-0 h-8 w-8 tour-attachment-button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isLoading}
-              >
-                <Image className="h-4 w-4" />
-              </Button>
-              <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,.pdf" />
+            <Button
+              type="button"
+              variant={isListening ? "destructive" : "ghost"}
+              size="icon"
+              className="shrink-0 h-8 w-8 tour-microphone-button"
+              onClick={() => {
+                if (isListening) {
+                  stopListening();
+                } else {
+                  startListening();
+                }
+              }}
+              disabled={isLoading}
+            >
+              <Mic className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="shrink-0 h-8 w-8 tour-attachment-button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading}
+            >
+              <Image className="h-4 w-4" />
+            </Button>
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,.pdf" />
 
-              <Button type="submit" size="icon" className="shrink-0 h-8 w-8" disabled={isLoading || (!input.trim() && !file)}>
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              </Button>
+            <Button type="submit" size="icon" className="shrink-0 h-8 w-8" disabled={isLoading || (!input.trim() && !file)}>
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            </Button>
           </form>
           {file && (
             <div className="p-2 pt-0 text-xs text-muted-foreground">Attached: {file.name}</div>
           )}
         </div>
         <p className="text-xs text-center text-muted-foreground mt-2 px-4">
-            AGI-S can make mistakes. Consider checking important information.
+          AGI-S can make mistakes. Consider checking important information.
         </p>
       </div>
     </div>
