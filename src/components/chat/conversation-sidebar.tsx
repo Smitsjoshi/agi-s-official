@@ -32,22 +32,35 @@ export function ConversationSidebar({
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
+    const [folders, setFolders] = useState<string[]>([]);
+    const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
+    const [newFolderName, setNewFolderName] = useState('');
+    const [isNewFolderDialogOpen, setIsNewFolderDialogOpen] = useState(false);
 
     useEffect(() => {
         loadConversations();
     }, []);
 
-    useEffect(() => {
-        if (searchQuery) {
-            setFilteredConversations(ConversationStore.searchConversations(searchQuery));
-        } else {
-            setFilteredConversations(conversations);
-        }
-    }, [searchQuery, conversations]);
+
+
+
+
+
+
+
+    +
+        useEffect(() => {
+            if (searchQuery) {
+                setFilteredConversations(ConversationStore.searchConversations(searchQuery));
+            } else {
+                setFilteredConversations(conversations);
+            }
+        }, [searchQuery, conversations]);
 
     const loadConversations = () => {
         const allConversations = ConversationStore.getAllConversations();
         setConversations(allConversations.sort((a, b) => b.updatedAt - a.updatedAt));
+        setFolders(ConversationStore.getFolders());
     };
 
     const handleDelete = (id: string) => {
@@ -68,8 +81,31 @@ export function ConversationSidebar({
         loadConversations();
     };
 
+    const createFolder = () => {
+        if (newFolderName.trim()) {
+            setIsNewFolderDialogOpen(false);
+            setNewFolderName('');
+        }
+    };
+
+    const toggleFolder = (folder: string) => {
+        setExpandedFolders(prev => ({ ...prev, [folder]: !prev[folder] }));
+    };
+
+    const moveToFolder = (conversation: Conversation, folder: string | undefined) => {
+        ConversationStore.moveConversationToFolder(conversation.id, folder);
+        loadConversations();
+    };
+
     const pinnedConversations = filteredConversations.filter(c => c.pinned);
     const unpinnedConversations = filteredConversations.filter(c => !c.pinned);
+    const rootConversations = unpinnedConversations.filter(c => !c.folder);
+
+    // Group by folder
+    const folderConversations: Record<string, Conversation[]> = {};
+    folders.forEach(folder => {
+        folderConversations[folder] = unpinnedConversations.filter(c => c.folder === folder);
+    });
 
     return (
         <div className="flex flex-col h-full border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -98,8 +134,8 @@ export function ConversationSidebar({
                 >
                     {pinnedConversations.length > 0 && (
                         <>
-                            <div className="px-2 py-1 text-xs font-semibold text-muted-foreground">
-                                Pinned
+                            <div className="px-2 py-1 text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                                <Pin className="h-3 w-3" /> Pinned
                             </div>
                             {pinnedConversations.map((conversation) => (
                                 <ConversationItem
@@ -110,19 +146,53 @@ export function ConversationSidebar({
                                     onDelete={() => handleDelete(conversation.id)}
                                     onExport={(format) => handleExport(conversation, format)}
                                     onTogglePin={() => togglePin(conversation)}
+                                    onMoveToFolder={(folder) => moveToFolder(conversation, folder)}
+                                    folders={folders}
                                 />
                             ))}
                         </>
                     )}
 
-                    {unpinnedConversations.length > 0 && (
+                    {/* Folders */}
+                    {folders.map(folder => (
+                        <div key={folder} className="space-y-1">
+                            <div
+                                className="flex items-center gap-2 px-2 py-1 text-xs font-semibold text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                                onClick={() => toggleFolder(folder)}
+                            >
+                                <FolderOpen className="h-3 w-3" />
+                                {folder}
+                                <span className="ml-auto text-[10px] opacity-70">{folderConversations[folder]?.length || 0}</span>
+                            </div>
+
+                            {(!expandedFolders[folder]) && (
+                                (expandedFolders[folder] !== false) && folderConversations[folder]?.map(conversation => (
+                                    <ConversationItem
+                                        key={conversation.id}
+                                        conversation={conversation}
+                                        isActive={conversation.id === currentConversationId}
+                                        onSelect={() => onSelectConversation(conversation.id)}
+                                        onDelete={() => handleDelete(conversation.id)}
+                                        onExport={(format) => handleExport(conversation, format)}
+                                        onTogglePin={() => togglePin(conversation)}
+                                        onMoveToFolder={(f) => moveToFolder(conversation, f)}
+                                        folders={folders}
+                                        className="ml-2 border-l pl-2"
+                                    />
+                                ))
+                            )}
+                        </div>
+                    ))}
+
+                    {/* Root Conversations */}
+                    {rootConversations.length > 0 && (
                         <>
-                            {pinnedConversations.length > 0 && (
+                            {(pinnedConversations.length > 0 || folders.length > 0) && (
                                 <div className="px-2 py-1 text-xs font-semibold text-muted-foreground mt-4">
                                     Recent
                                 </div>
                             )}
-                            {unpinnedConversations.map((conversation) => (
+                            {rootConversations.map((conversation) => (
                                 <ConversationItem
                                     key={conversation.id}
                                     conversation={conversation}
@@ -131,6 +201,8 @@ export function ConversationSidebar({
                                     onDelete={() => handleDelete(conversation.id)}
                                     onExport={(format) => handleExport(conversation, format)}
                                     onTogglePin={() => togglePin(conversation)}
+                                    onMoveToFolder={(folder) => moveToFolder(conversation, folder)}
+                                    folders={folders}
                                 />
                             ))}
                         </>
@@ -154,6 +226,9 @@ interface ConversationItemProps {
     onDelete: () => void;
     onExport: (format: 'markdown' | 'html' | 'pdf' | 'json') => void;
     onTogglePin: () => void;
+    onMoveToFolder: (folder: string | undefined) => void;
+    folders: string[];
+    className?: string;
 }
 
 function ConversationItem({
@@ -163,9 +238,15 @@ function ConversationItem({
     onDelete,
     onExport,
     onTogglePin,
+    onMoveToFolder,
+    folders,
+    className
 }: ConversationItemProps) {
+    const [isEditingFolder, setIsEditingFolder] = useState(false);
+    const [newFolderInput, setNewFolderInput] = useState('');
+
     return (
-        <motion.div variants={staggerItem} className="group">
+        <motion.div variants={staggerItem} className={cn("group", className)}>
             <div
                 className={cn(
                     'flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors',
@@ -198,6 +279,28 @@ function ConversationItem({
                             <Pin className="h-4 w-4 mr-2" />
                             {conversation.pinned ? 'Unpin' : 'Pin'}
                         </DropdownMenuItem>
+
+                        <DropdownMenuSeparator />
+
+                        {/* Folder Management */}
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); /* Logic to show folder input */ }}>
+                            <FolderOpen className="h-4 w-4 mr-2" />
+                            Move to...
+                        </DropdownMenuItem>
+                        {folders.length > 0 && (
+                            <>
+                                <DropdownMenuSeparator />
+                                {folders.map(folder => (
+                                    <DropdownMenuItem key={folder} onClick={(e) => { e.stopPropagation(); onMoveToFolder(folder); }}>
+                                        <span className="pl-4">{folder}</span>
+                                    </DropdownMenuItem>
+                                ))}
+                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onMoveToFolder(undefined); }}>
+                                    <span className="pl-4 text-muted-foreground">Remove from folder</span>
+                                </DropdownMenuItem>
+                            </>
+                        )}
+
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onExport('markdown'); }}>
                             <Download className="h-4 w-4 mr-2" />

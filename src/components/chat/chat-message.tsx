@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { ThumbsUp, ThumbsDown, User, Loader2, Info, Link as LinkIcon, Globe, Bot, Copy, Check, RotateCcw } from 'lucide-react';
+import { useState } from 'react';
+import { ThumbsUp, ThumbsDown, User, Loader2, Info, Link as LinkIcon, Globe, Bot, Copy, Check, GitBranch } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { SourcePreview } from './source-preview';
@@ -126,8 +126,15 @@ const SearchResultDisplay = ({ result }: { result: SearchResult }) => {
   );
 };
 
-
-export function ChatMessageDisplay({ message, isLoading = false }: { message: ChatMessage; isLoading?: boolean }) {
+export function ChatMessageDisplay({
+  message,
+  isLoading = false,
+  onBranch
+}: {
+  message: ChatMessage;
+  isLoading?: boolean;
+  onBranch?: (messageId: string) => void;
+}) {
   const [feedback, setFeedback] = useState<'up' | 'down' | null>(null);
 
   if (message.role === 'user') {
@@ -179,7 +186,7 @@ export function ChatMessageDisplay({ message, isLoading = false }: { message: Ch
                 <EnhancedMarkdown content={message.content} />
               </div>
 
-              {isLiveAgentResponse && message.liveWebAgentOutput.results && message.liveWebAgentOutput.results.length > 0 && (
+              {isLiveAgentResponse && message.liveWebAgentOutput?.results && message.liveWebAgentOutput.results.length > 0 && (
                 <div>
                   <h4 className="font-semibold mb-3 text-base">Agent Results:</h4>
                   <div className="border-t pt-4">
@@ -246,6 +253,22 @@ export function ChatMessageDisplay({ message, isLoading = false }: { message: Ch
                   >
                     <ThumbsDown className={cn("h-4 w-4", feedback === 'down' && "text-destructive")} />
                   </Button>
+
+                  {onBranch && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 ml-auto"
+                          onClick={() => onBranch(message.id)}
+                        >
+                          <GitBranch className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Branch conversation from here</TooltipContent>
+                    </Tooltip>
+                  )}
                 </div>
               )}
             </TooltipProvider>

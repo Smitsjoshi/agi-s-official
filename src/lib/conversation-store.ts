@@ -30,15 +30,15 @@ export class ConversationStore {
   static saveConversation(conversation: Conversation): void {
     const conversations = this.getAllConversations();
     const index = conversations.findIndex(c => c.id === conversation.id);
-    
+
     conversation.updatedAt = Date.now();
-    
+
     if (index >= 0) {
       conversations[index] = conversation;
     } else {
       conversations.push(conversation);
     }
-    
+
     localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
   }
 
@@ -60,8 +60,8 @@ export class ConversationStore {
   static searchConversations(query: string): Conversation[] {
     const conversations = this.getAllConversations();
     const lowerQuery = query.toLowerCase();
-    
-    return conversations.filter(c => 
+
+    return conversations.filter(c =>
       c.title.toLowerCase().includes(lowerQuery) ||
       c.messages.some(m => m.content.toLowerCase().includes(lowerQuery)) ||
       c.tags?.some(t => t.toLowerCase().includes(lowerQuery))
@@ -81,10 +81,82 @@ export class ConversationStore {
   static generateTitle(messages: ChatMessage[]): string {
     const firstUserMessage = messages.find(m => m.role === 'user');
     if (!firstUserMessage) return 'New Conversation';
-    
+
     const content = firstUserMessage.content.substring(0, 50);
-    return content.length < firstUserMessage.content.length 
-      ? content + '...' 
+    return content.length < firstUserMessage.content.length
+      ? content + '...'
       : content;
+  }
+
+  static branchConversation(originalId: string, messageId: string, newTitle?: string): Conversation | null {
+    const original = this.getConversation(originalId);
+    if (!original) return null;
+
+    const messageIndex = original.messages.findIndex(m => m.id === messageId);
+    if (messageIndex === -1) return null;
+
+    const newMessages = original.messages.slice(0, messageIndex + 1);
+
+    const newConversation: Conversation = {
+      ...original,
+      id: crypto.randomUUID(),
+      title: newTitle || `${original.title} (Branch)`,
+      messages: newMessages,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      folder: original.folder, // Keep in same folder by default
+    };
+
+    this.saveConversation(newConversation);
+    return newConversation;
+  }
+
+  static getFolders(): string[] {
+    const conversations = this.getAllConversations();
+    const folders = new Set<string>();
+    conversations.forEach(c => {
+      if (c.folder) folders.add(c.folder);
+    });
+    return Array.from(folders).sort();
+  }
+
+  static moveConversationToFolder(id: string, folder: string | undefined): void {
+    const conversation = this.getConversation(id);
+    if (conversation) {
+      conversation.folder = folder;
+      this.saveConversation(conversation);
+    }
+  }
+
+  static renameFolder(oldName: string, newName: string): void {
+    const conversations = this.getAllConversations();
+    let changed = false;
+
+    conversations.forEach(c => {
+      if (c.folder === oldName) {
+        c.folder = newName;
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
+    }
+  }
+
+  static deleteFolder(folderName: string): void {
+    const conversations = this.getAllConversations();
+    let changed = false;
+
+    conversations.forEach(c => {
+      if (c.folder === folderName) {
+        c.folder = undefined; // Move to root
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
+    }
   }
 }
