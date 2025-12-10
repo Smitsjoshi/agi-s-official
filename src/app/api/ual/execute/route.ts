@@ -2,6 +2,11 @@
  * AGI-S Universal Action Layer (UAL)™ - Server Implementation
  * Copyright © 2024-2025 AGI-S Technologies
  * Patent Pending
+ * 
+ * IMPORTANT: Puppeteer may not work on Vercel serverless functions
+ * due to binary size limits. For production, consider using:
+ * - Puppeteer with @sparticuz/chromium (Vercel-compatible)
+ * - Or a dedicated server for browser automation
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -9,12 +14,20 @@ import type { UALTask, UALResult, WebAction } from '@/lib/universal-action-layer
 
 // Dynamic import for Puppeteer (server-side only)
 let puppeteer: any;
+let chromium: any;
 
-async function initPuppeteer() {
+async function initBrowser() {
     if (!puppeteer) {
-        puppeteer = await import('puppeteer');
+        try {
+            // Try to use chromium-min for Vercel
+            chromium = await import('@sparticuz/chromium');
+            puppeteer = await import('puppeteer-core');
+        } catch {
+            // Fallback to regular puppeteer for local development
+            puppeteer = await import('puppeteer');
+        }
     }
-    return puppeteer;
+    return { puppeteer, chromium };
 }
 
 /**
@@ -29,12 +42,48 @@ export async function POST(req: NextRequest) {
         let screenshot: string | undefined;
         let extractedData: any;
 
-        // Initialize Puppeteer
-        const pup = await initPuppeteer();
-        const browser = await pup.default.launch({
-            headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        });
+        // Initialize Browser
+        const { puppeteer: pup, chromium: chr } = await initBrowser();
+
+        let browser;
+
+        try {
+            if (chr) {
+                // Vercel environment with chromium
+                steps.push('🌐 Launching browser (Vercel mode)...');
+                browser = await pup.default.launch({
+                    args: chr.default.args,
+                    defaultViewport: chr.default.defaultViewport,
+                    executablePath: await chr.default.executablePath(),
+                    headless: chr.default.headless,
+                });
+            } else {
+                // Local development
+                steps.push('🌐 Launching browser (local mode)...');
+                browser = await pup.default.launch({
+                    headless: true,
+                    args: [
+                        '--no-sandbox',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--disable-accelerated-2d-canvas',
+                        '--no-first-run',
+                        '--no-zygote',
+                        '--disable-gpu'
+                    ],
+                });
+            }
+        } catch (launchError: any) {
+            steps.push(`❌ Browser launch failed: ${launchError.message}`);
+            steps.push('⚠️ Note: Puppeteer may not work on Vercel free tier');
+            steps.push('💡 For production, use a dedicated server or Browserless.io');
+
+            return NextResponse.json({
+                success: false,
+                error: 'Browser automation not available on this platform',
+                steps,
+            } as UALResult);
+        }
 
         steps.push('✅ Browser launched');
 

@@ -6,8 +6,38 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { callGroqText } from '@/lib/groq';
 import type { WebAction } from '@/lib/universal-action-layer';
+
+// Groq API helper (copied from actions.ts to avoid import issues)
+async function callGroqForPlanning(messages: Array<{ role: string; content: string }>): Promise<string> {
+    const apiKey = process.env.GROQ_API_KEY;
+
+    if (!apiKey) {
+        throw new Error("GROQ_API_KEY is not set");
+    }
+
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            messages,
+            temperature: 0.3,
+            max_tokens: 1000,
+        })
+    });
+
+    if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Groq API error: ${error}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0]?.message?.content || '';
+}
 
 export async function POST(req: NextRequest) {
     try {
@@ -38,7 +68,7 @@ Example output:
 
 Return ONLY the JSON array, no explanation.`;
 
-        const response = await callGroqText([
+        const response = await callGroqForPlanning([
             {
                 role: 'system',
                 content: 'You are UAL™ AI Planner. You convert goals into precise web automation actions. Always return valid JSON arrays.'
